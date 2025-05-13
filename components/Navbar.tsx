@@ -13,8 +13,8 @@ import Image from 'next/image'
 
 const navLinks = [
     {
-        name: "About",
-        link: "#about"
+        name: "Analyze",
+        link: "/analyze"
     },
     {
         name: "dashboard",
@@ -80,7 +80,7 @@ const Navbar = () => {
                 </div>
 
             </div>
-            <button  onClick={() => setIsMenuOpen(true)} className='xl:hidden ml-8 cursor-pointer md:hidden'><ChevronDown className='w-7 h-7'/></button>
+            <button  onClick={() => setIsMenuOpen(true)} className='xl:hidden  cursor-pointer md:hidden'><ChevronDown className='w-7 h-7 text-gray-300'/></button>
             <div className='flex items-center gap-3'>
             <Link href={user ? "/profile": "/login"}>
             <motion.button

@@ -120,3 +120,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  cursor: url('/plane.svg') 0 0, auto;
+}
+
+::selection {
+  color: rgb(17, 16, 16);
+  background: rgb(133, 120, 120);
+}

@@ -99,7 +99,7 @@ export default function LoginPage() {
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             className="w-20 h-20  flex items-center justify-center mb-6 border-2 border-[#1b1b1b] shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-[#181717] rounded-lg"
-          >
+            > 
             <Image src={"/logo.png"} alt='logo' sizes='lg' width={200} height={200} className='object-cover w-20 h-20 rounded-md border-b-2 border-[#1b1b1b]   shadow-[inset_0px_0px_24px_3px_#282828]'/>
           </motion.div>
 
