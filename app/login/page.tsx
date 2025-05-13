@@ -7,6 +7,7 @@ import { Github,  Twitter } from 'lucide-react';
 import { Poppins, Roboto_Mono } from 'next/font/google';
 import Image from 'next/image';
 import { signInWIthGoogle } from '../actions';
+import { NumberTicker } from '@/components/magicui/number-ticker';
 
 
 
@@ -91,7 +92,7 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md rounded-lg border-t-2 border-r-2 border-[#2E2E2E]  shadow-xl p-8 bg-[#181916]"
+        className="w-full max-w-md h-[490px] rounded-lg border-t-2  border-[#2E2E2E]   p-8 bg-[#181916] shadow-[inset_0px_0px_24px_3px_#222222]"
       >
         <div className="flex flex-col items-center">
           <motion.div 
@@ -99,7 +100,7 @@ export default function LoginPage() {
             animate={{ scale: 1 }}
             className="w-20 h-20  flex items-center justify-center mb-6 border-2 border-[#1b1b1b] shadow-[0_3px_10px_rgb(0,0,0,0.2)] bg-[#181717] rounded-lg"
           >
-            <Image src={"/logo.png"} alt='logo' sizes='lg' width={200} height={200} className='object-cover w-24 h-24 shadow-[0_3px_10px_rgb(0,0,0,0.2)]'/>
+            <Image src={"/logo.png"} alt='logo' sizes='lg' width={200} height={200} className='object-cover w-20 h-20 rounded-md border-b-2 border-[#1b1b1b]   shadow-[inset_0px_0px_24px_3px_#282828]'/>
           </motion.div>
 
           <motion.h1 
@@ -128,7 +129,7 @@ export default function LoginPage() {
             <div className="relative">
               <Button
                 
-                className="w-full flex px-4 py-5 border-b-2 border-[#202020] rounded-sm bg-[#1b1b1b] hover:border-0 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                className="w-full flex px-4 py-6 border-b-2 border-[#202020] rounded-sm bg-[#161616] hover:border-0 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
                 onClick={signInWIthGoogle}
               >Google</Button>
             </div>
@@ -136,17 +137,21 @@ export default function LoginPage() {
             <div className="relative">
               <Button
                 
-                className="w-full flex px-4 py-5 border-b-2 border-[#202020] rounded-sm bg-[#1b1b1b] hover:border-0 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                className="w-full flex px-4 py-6 border-b-2 border-[#202020] rounded-sm bg-[#161616] hover:border-0 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
               ><Github className='w-5 h-5'/> Github</Button>
               
             </div>
             <div className="relative">
               <Button
                 
-                className="w-full flex px-4 py-5 border-b-2 border-[#202020] rounded-sm bg-[#1b1b1b] hover:border-0 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                className="w-full flex px-4 py-6 border-b-2 border-[#202020] rounded-sm bg-[#161616] hover:border-0 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
               ><Twitter className='w-5 h-5 text-blue-500'/>
                 Twitter</Button>
               
+            </div>
+            <div className='w-full h-[1px] bg-[#222222] '></div>
+            <div className='w-full '>
+              <h1 className='whitespace-pre-wrap text-md font-medium tracking-tighter text-gray-400 text-center'>Trusted by <NumberTicker value={100} className='whitespace-pre-wrap text-md font-medium tracking-tighter text-gray-300'/>+ users</h1>
             </div>
 
             
