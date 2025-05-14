@@ -83,6 +83,7 @@ const ResumeUploaderHome = () => {
             className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
             onChange={(e) => setResume(e.target.files ? e.target.files[0] : null)}
             disabled={isLoading}
+            required
           />
         </div>
         
@@ -91,6 +92,7 @@ const ResumeUploaderHome = () => {
           className='w-full h-32 p-4 rounded-lg bg-[#303030] text-gray-300 placeholder-gray-500 border border-[#424141] focus:outline-none focus:ring-2 focus:ring-[#555] resize-none'
           onChange={(e) => setJobDesc(e.target.value)}
           disabled={isLoading}
+          required
         />
         <motion.button
               initial={{ opacity: 0, y: 10 }}
