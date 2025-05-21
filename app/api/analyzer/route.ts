@@ -4,6 +4,7 @@ import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 
 import { createClientServer } from "@/lib/utils/supabase/server";
 import {GoogleGenAI} from '@google/genai';
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
@@ -12,6 +13,7 @@ const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 async function descTailor({jobDesc}: {jobDesc: string}) {
     const Prompt = `
     Extract the job title ,company name and description from the following job description. 
+    
 
     Respond in the following JSON format:
     {
@@ -29,8 +31,15 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
         contents: Prompt
     })
     const result = response.text;
-    console.log(result);
-    return result
+    const match = result?.match(/```json\s*([\s\S]*?)```/);
+    const jsonString = match ? match[1].trim() : result?.trim();
+    const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
+    const mainString = JSON.parse(sanitizedJsonString ?? "");
+    console.log(mainString)
+    
+
+    
+    return mainString;
 
 
     
@@ -47,16 +56,41 @@ export async function POST(req: NextRequest) {
     const file: File| null = data.get("resume") as unknown as File;
     const filename = file.size;
     const jobDesc: string = data.get("jobDesc") as unknown as string;
-    console.log(jobDesc);
+    
 
     const tailoredJobDescription = await descTailor({jobDesc: jobDesc});
-    console.log(tailoredJobDescription);
+     
+    console.log(tailoredJobDescription.title, tailoredJobDescription.company, tailoredJobDescription.description);
 
+    await supabase.from("job_desc").insert({
+        title: tailoredJobDescription.title,
+        company_name: (tailoredJobDescription.company ===null ? "N/A": tailoredJobDescription.company),
+        description: tailoredJobDescription.description
+    })
 
+    
     const loader = new PDFLoader(file);
     const docs = await loader.load();
     const resumeText = docs[0].pageContent;
-    console.log(resumeText);
+
+    await supabase.from("resume").insert({
+        filename: filename,
+        text: resumeText,
+        createdAt: ((new Date()).toISOString()).toLocaleString()
+    })
+
+
+
+    
+    
+    const textSplitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 20,
+        chunkOverlap: 2
+    })
+    const text = await textSplitter.splitText(resumeText);
+    console.log(text)
+
+
     
 
     if(!file){
