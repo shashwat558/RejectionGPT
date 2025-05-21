@@ -39,39 +39,31 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
 
 
 export async function POST(req: NextRequest) {
-    const {resumeBase64, jobDesc, userId} = await req.json();
-    console.log(resumeBase64, jobDesc, userId + "this is what you need");
-    console.log("resume type", typeof resumeBase64)
-
-
-    
-
-    
 
     const supabase = await createClientServer();
+    const user = await supabase.auth.getUser();
+    console.log(user.data.user?.id);
+    const data = await req.formData();
+    const file: File| null = data.get("resume") as unknown as File;
+    const filename = file.size;
+    const jobDesc: string = data.get("jobDesc") as unknown as string;
+    console.log(jobDesc);
 
-    if(resumeBase64){
-      try{
-          const buffer = Buffer.from(String(resumeBase64), "base64");
-          const loader = new PDFLoader(new Blob([buffer]));
-          const docs = await loader.load();
-          const resumeText = docs[0].pageContent;
-          console.log(resumeText);
-          return NextResponse.json({resumeText})
-        
-
-
-           
-            
+    const tailoredJobDescription = await descTailor({jobDesc: jobDesc});
+    console.log(tailoredJobDescription);
 
 
-            
-        } catch (error) {
-            console.log(error)
-            return NextResponse.json({message: "I fucked up"})
-            
-        }
+    const loader = new PDFLoader(file);
+    const docs = await loader.load();
+    const resumeText = docs[0].pageContent;
+    console.log(resumeText);
+    
+
+    if(!file){
+        return NextResponse.json({success: false})
     }
+
+    return NextResponse.json({success: true, filename})
 
     
   }

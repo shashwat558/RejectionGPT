@@ -11,73 +11,39 @@ const ResumeUploaderHome = () => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter()
     const {user} = useAuth();
-    const userId = user?.id;
+    
 
-    const handleSubmit = async () => {
-        setIsLoading(true)
-        if (!resume) {
-            throw new Error("No resume file selected");
-        }
-        const reader = new FileReader();
-        
-        reader.onload = async () => {
-             const arrayBuffer = reader.result as ArrayBuffer;
-             const uint8Array = new Uint8Array(arrayBuffer);
-            let binary = "";
-            uint8Array.forEach(byte => {
-            binary += String.fromCharCode(byte);
-            });
-            const base64String = btoa(binary);
-            const data = {
-                resumeBase64: base64String,
-                jobDesc,
-                userId
-            }
-            console.log(data)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if(!resume) return 
 
-             try {
+        try {
+            const data = new FormData();
+
+            data.set("resume", resume);
+            data.set("jobDesc", jobDesc || "");
+            
+
+
             const response = await fetch("/api/analyzer", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }, 
-                body: JSON.stringify(data)
+                body: data
             })
-            if (response.ok) {
-                setIsLoading(false)
-                const { id } = await response.json();
-                if (id) {
-                    console.log(id)
-                }
-            }
+            if(!response.ok) throw new Error; (await response.text())
         } catch (error) {
-            setIsLoading(false)
-            console.error(error)
-        } finally {
-            setIsLoading(false)
+             console.error(error)            
         }
 
-        
-
-
-
-
-        }
-        reader.onerror = (err) => {
-            console.error("Error reading file", err);
-            setIsLoading(false)
-
-        }
-
-        reader.readAsDataURL(resume);
-
-
-        
-
-        
-        
-       
     }
+
+    
+
+        
+
+
+
+
+        
 
     return (
         <motion.div
