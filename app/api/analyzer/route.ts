@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createClientServer();
     const user = await supabase.auth.getUser();
-    console.log(user.data.user?.id);
+    const userId = user.data.user?.id;
     const data = await req.formData();
     const file: File| null = data.get("resume") as unknown as File;
     const filename = file.size;
@@ -62,33 +62,35 @@ export async function POST(req: NextRequest) {
      
     console.log(tailoredJobDescription.title, tailoredJobDescription.company, tailoredJobDescription.description);
 
-    await supabase.from("job_desc").insert({
-        title: tailoredJobDescription.title,
-        company_name: (tailoredJobDescription.company ===null ? "N/A": tailoredJobDescription.company),
-        description: tailoredJobDescription.description
-    })
+    // await supabase.from("job_desc").insert({
+    //     title: tailoredJobDescription.title,
+    //     company_name: (tailoredJobDescription.company ===null ? "N/A": tailoredJobDescription.company),
+    //     description: tailoredJobDescription.description,
+    //     user_id: userId
+    // })
 
     
     const loader = new PDFLoader(file);
     const docs = await loader.load();
     const resumeText = docs[0].pageContent;
 
-    await supabase.from("resume").insert({
-        filename: filename,
-        text: resumeText,
-        createdAt: ((new Date()).toISOString()).toLocaleString()
-    })
+    // await supabase.from("resume").insert({
+    //     filename: filename,
+    //     text: resumeText,
+    //     createdAt: ((new Date()).toISOString()).toLocaleString()
+    // })
+
 
 
 
     
     
     const textSplitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 20,
-        chunkOverlap: 2
+        chunkSize: 100,
+        chunkOverlap: 20
     })
-    const text = await textSplitter.splitText(resumeText);
-    console.log(text)
+    const chunks = await textSplitter.createDocuments([resumeText]);
+    console.log(chunks.length);
 
 
     
