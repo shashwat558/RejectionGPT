@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { CheckCircle, FileText, Briefcase, Star, Coffee, Zap } from 'lucide-react';
 import { useAuth } from '@/stores/useAuth';
-
 const ResumeUploaderHome = () => {
     const [resume, setResume] = useState<File | null>(null);
     const [jobDesc, setJobDesc] = useState<string | null>(null);
@@ -16,19 +15,33 @@ const ResumeUploaderHome = () => {
 
     const handleSubmit = async () => {
         setIsLoading(true)
-        const formData = new FormData();
-        if (resume && jobDesc && userId) {
-            formData.append("resume", resume);
-            formData.append("jobDesc", jobDesc);
-            formData.append("userId", userId)
-
+        if (!resume) {
+            throw new Error("No resume file selected");
         }
+        const reader = new FileReader();
         
-        try {
+        reader.onload = async () => {
+             const arrayBuffer = reader.result as ArrayBuffer;
+             const uint8Array = new Uint8Array(arrayBuffer);
+            let binary = "";
+            uint8Array.forEach(byte => {
+            binary += String.fromCharCode(byte);
+            });
+            const base64String = btoa(binary);
+            const data = {
+                resumeBase64: base64String,
+                jobDesc,
+                userId
+            }
+            console.log(data)
+
+             try {
             const response = await fetch("/api/analyzer", {
                 method: "POST",
-                
-                body: formData
+                headers: {
+                    "Content-Type": "application/json"
+                }, 
+                body: JSON.stringify(data)
             })
             if (response.ok) {
                 setIsLoading(false)
@@ -43,6 +56,27 @@ const ResumeUploaderHome = () => {
         } finally {
             setIsLoading(false)
         }
+
+        
+
+
+
+
+        }
+        reader.onerror = (err) => {
+            console.error("Error reading file", err);
+            setIsLoading(false)
+
+        }
+
+        reader.readAsDataURL(resume);
+
+
+        
+
+        
+        
+       
     }
 
     return (

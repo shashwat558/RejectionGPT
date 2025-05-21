@@ -1,27 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+
+import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
+
 import { createClientServer } from "@/lib/utils/supabase/server";
 import {GoogleGenAI} from '@google/genai';
-import formidable from 'formidable';
-import { IncomingMessage } from "http";
 
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
-export const config = {
-    api: {
-        bodyParser: false
-    }
-}
 
-function parseForm(req: IncomingMessage): Promise<{ fields: any; files: any }> {
-  const form = formidable({ multiples: false });
-  return new Promise((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
-      if (err) reject(err);
-      resolve({ fields, files });
-    });
-  });
-}
 
 async function descTailor({jobDesc}: {jobDesc: string}) {
     const Prompt = `
@@ -53,30 +39,26 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
 
 
 export async function POST(req: NextRequest) {
-    const {fields, files} = await parseForm(req);
+    const {resumeBase64, jobDesc, userId} = await req.json();
+    console.log(resumeBase64, jobDesc, userId + "this is what you need");
+    console.log("resume type", typeof resumeBase64)
 
-    const jobDesc = fields.jobDesc?.[0] || '';
-  const userId = fields.userId?.[0];
-  const resumeFile = files.resume?.[0];
+
+    
 
     
 
     const supabase = await createClientServer();
 
-    if(resumeFile){
-        try {
-            const buffer = Buffer.from(await resumeFile.arrayBuffer());
-            const blob = new Blob([buffer]);
-            const loader = new PDFLoader(blob);
-            const docs = await loader.load();
-
-            const text = docs[0].pageContent
-            const filename = resumeFile.name;
-            const desc = await descTailor({jobDesc});
-            console.log(text, filename, desc)
-
-            return NextResponse.json({text, filename, desc, userId})
-
+    if(resumeBase64){
+      try{
+          const buffer = Buffer.from(String(resumeBase64), "base64");
+          const loader = new PDFLoader(new Blob([buffer]));
+          const docs = await loader.load();
+          const resumeText = docs[0].pageContent;
+          console.log(resumeText);
+          return NextResponse.json({resumeText})
+        
 
 
            
@@ -85,10 +67,11 @@ export async function POST(req: NextRequest) {
 
             
         } catch (error) {
+            console.log(error)
+            return NextResponse.json({message: "I fucked up"})
             
-            console.error(error)
         }
     }
 
     
-}
+  }
