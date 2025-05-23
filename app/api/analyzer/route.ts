@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
-
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { createClientServer } from "@/lib/utils/supabase/server";
 import {GoogleGenAI} from '@google/genai';
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-
+import { VertexAIEmbeddings } from "@langchain/google-vertexai";
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
 
@@ -45,6 +45,12 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
     
 }
 
+const embeddings = new VertexAIEmbeddings({
+    model: "text-embedding-005",
+    location: "us-central1"
+})
+
+
 
 
 export async function POST(req: NextRequest) {
@@ -56,6 +62,7 @@ export async function POST(req: NextRequest) {
     const file: File| null = data.get("resume") as unknown as File;
     const filename = file.size;
     const jobDesc: string = data.get("jobDesc") as unknown as string;
+    
     
 
     const tailoredJobDescription = await descTailor({jobDesc: jobDesc});
@@ -74,11 +81,11 @@ export async function POST(req: NextRequest) {
     const docs = await loader.load();
     const resumeText = docs[0].pageContent;
 
-    // await supabase.from("resume").insert({
-    //     filename: filename,
-    //     text: resumeText,
-    //     createdAt: ((new Date()).toISOString()).toLocaleString()
-    // })
+     const id = await supabase.from("resume").insert({
+         filename: filename,
+         text: resumeText,
+         createdAt: ((new Date()).toISOString()).toLocaleString()
+     }).select()
 
 
 
@@ -86,11 +93,23 @@ export async function POST(req: NextRequest) {
     
     
     const textSplitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 100,
+        chunkSize: 200,
         chunkOverlap: 20
     })
-    const chunks = await textSplitter.createDocuments([resumeText]);
+    const chunks = await textSplitter.splitText(resumeText);
     console.log(chunks.length);
+    console.log(chunks);
+
+    for(let i=0; i<chunks.length; i++){
+        const chunk = chunks[i];
+        const embedding = await embeddings.embedQuery(chunk);
+        await supabase.from("resume_chunks").insert({
+            chunk_id: i,
+            
+        })
+    }
+
+    
 
 
     
