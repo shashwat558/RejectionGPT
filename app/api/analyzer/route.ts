@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 
 import { createClientServer } from "@/lib/utils/supabase/server";
-import {GoogleGenAI} from '@google/genai';
+import {GoogleGenAI, v} from '@google/genai';
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { VertexAIEmbeddings } from "@langchain/google-vertexai";
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
@@ -28,7 +28,9 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
 
     const response = await genAI.models.generateContent({
         model: "gemini-1.5-flash",
-        contents: Prompt
+        contents: Prompt,
+        
+        
     })
     const result = response.text;
     const match = result?.match(/```json\s*([\s\S]*?)```/);
@@ -53,7 +55,7 @@ Your job is to give helpful, real feedback. Be clear, specific, and honest — e
 
 Respond in the following **JSON format**:
 
-{
+{ "match_score": "Matching score of resume and job"
   "summary": "Short overview of how well the resume matches the job.",
   "strengths": ["List of things the resume does well."],
   "missing_skills": ["Skills or tools the job asks for but are missing or vague in the resume."],
@@ -125,9 +127,12 @@ export async function POST(req: NextRequest) {
 
     
 
-    const tailoredJobDescription = await descTailor({jobDesc: jobDesc});
-     
-    console.log(tailoredJobDescription.title, tailoredJobDescription.company, tailoredJobDescription.description);
+    
+    const [tailoredJobDescription, feedback] = await Promise.all([
+        await descTailor({jobDesc: jobDesc}),
+        await aifeedback({resumeText: resumeText, jobDescription: jobDesc})
+
+    ])
 
     await supabase.from("resume").insert({
         filename: filename,
@@ -143,8 +148,8 @@ export async function POST(req: NextRequest) {
         user_id: userId
     })
 
-    const feedback = await aifeedback({resumeText: resumeText, jobDescription: jobDesc});
-    console.log(feedback)
+    await a
+    
 
    
 
