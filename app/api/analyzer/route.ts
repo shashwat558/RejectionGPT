@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
-import { OpenAIEmbeddings } from "@langchain/openai";
+
 import { createClientServer } from "@/lib/utils/supabase/server";
 import {GoogleGenAI} from '@google/genai';
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -45,10 +45,67 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
     
 }
 
-const embeddings = new VertexAIEmbeddings({
-    model: "text-embedding-005",
-    location: "us-central1"
-})
+async function aifeedback({resumeText, jobDescription}: {resumeText: string, jobDescription: string}){
+    const Prompt = `
+You are a smart, supportive, and slightly sarcastic career coach. You’ve reviewed thousands of resumes and job descriptions. Now, you're helping a real person figure out how their resume fits the job they want.
+
+Your job is to give helpful, real feedback. Be clear, specific, and honest — even if it stings a little. Add a *touch of sarcasm* here and there to keep it real and fun, but never be rude or mean. Think “friendly mentor with a dry sense of humor.”
+
+Respond in the following **JSON format**:
+
+{
+  "summary": "Short overview of how well the resume matches the job.",
+  "strengths": ["List of things the resume does well."],
+  "missing_skills": ["Skills or tools the job asks for but are missing or vague in the resume."],
+  "weak_points": ["Things that weaken the resume — vague lines, no metrics, outdated buzzwords, etc."],
+  "suggestions": ["Specific things the person should do to improve their resume and match the job better."]
+}
+
+You are given two things:
+
+1. The user’s resume.
+2. A job description.
+
+---
+
+Here is the resume:
+
+${resumeText}
+
+---
+
+Here is the job description:
+
+${jobDescription}
+
+---
+
+Now compare them and write the JSON response. Be useful, be honest, and let your sarcasm peek through — like you're giving feedback to a smart friend who *really* needs to fix their resume.
+
+
+
+    `
+
+    const response = await genAI.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: Prompt
+    })
+
+    const result = response.text;
+    const match = result?.match(/```json\s*([\s\S]*?)```/);
+    const jsonString = match ? match[1].trim() : result?.trim();
+    const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
+    const mainString = JSON.parse(sanitizedJsonString ?? "");
+    console.log(mainString);
+    
+
+    
+    return mainString;
+
+ 
+}
+
+
 
 
 
@@ -62,52 +119,46 @@ export async function POST(req: NextRequest) {
     const file: File| null = data.get("resume") as unknown as File;
     const filename = file.size;
     const jobDesc: string = data.get("jobDesc") as unknown as string;
-    
+    const loader = new PDFLoader(file);
+    const docs = await loader.load();
+    const resumeText = docs[0].pageContent;
+
     
 
     const tailoredJobDescription = await descTailor({jobDesc: jobDesc});
      
     console.log(tailoredJobDescription.title, tailoredJobDescription.company, tailoredJobDescription.description);
 
-    // await supabase.from("job_desc").insert({
-    //     title: tailoredJobDescription.title,
-    //     company_name: (tailoredJobDescription.company ===null ? "N/A": tailoredJobDescription.company),
-    //     description: tailoredJobDescription.description,
-    //     user_id: userId
-    // })
+    await supabase.from("resume").insert({
+        filename: filename,
+        text: resumeText,
+        user_id: userId
 
-    
-    const loader = new PDFLoader(file);
-    const docs = await loader.load();
-    const resumeText = docs[0].pageContent;
-
-     const id = await supabase.from("resume").insert({
-         filename: filename,
-         text: resumeText,
-         createdAt: ((new Date()).toISOString()).toLocaleString()
-     }).select()
-
-
-
-
-    
-    
-    const textSplitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 200,
-        chunkOverlap: 20
     })
-    const chunks = await textSplitter.splitText(resumeText);
-    console.log(chunks.length);
-    console.log(chunks);
 
-    for(let i=0; i<chunks.length; i++){
-        const chunk = chunks[i];
-        const embedding = await embeddings.embedQuery(chunk);
-        await supabase.from("resume_chunks").insert({
-            chunk_id: i,
-            
-        })
-    }
+    await supabase.from("job_desc").insert({
+        title: tailoredJobDescription.title,
+        company_name: (tailoredJobDescription.company ===null ? "N/A": tailoredJobDescription.company),
+        description: tailoredJobDescription.description,
+        user_id: userId
+    })
+
+    const feedback = await aifeedback({resumeText: resumeText, jobDescription: jobDesc});
+    console.log(feedback)
+
+   
+
+    
+    
+
+     
+
+
+
+
+    
+    
+    
 
     
 
@@ -118,7 +169,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({success: false})
     }
 
-    return NextResponse.json({success: true, filename})
+    return NextResponse.json({success: true, filename, feedback})
 
     
   }

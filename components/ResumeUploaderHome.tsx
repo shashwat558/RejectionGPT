@@ -15,9 +15,11 @@ const ResumeUploaderHome = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         if(!resume) return 
 
         try {
+            setIsLoading(true);
             const data = new FormData();
 
             data.set("resume", resume);
@@ -29,9 +31,11 @@ const ResumeUploaderHome = () => {
                 method: "POST",
                 body: data
             })
+            setIsLoading(false)
             if(!response.ok) throw new Error; (await response.text())
         } catch (error) {
              console.error(error)            
+             setIsLoading(false)
         }
 
     }
