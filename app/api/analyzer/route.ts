@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 
 import { createClientServer } from "@/lib/utils/supabase/server";
-import {GoogleGenAI, v} from '@google/genai';
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { VertexAIEmbeddings } from "@langchain/google-vertexai";
+import {GoogleGenAI} from '@google/genai';
+// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+// import { VertexAIEmbeddings } from "@langchain/google-vertexai";
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
 
@@ -134,47 +134,54 @@ export async function POST(req: NextRequest) {
 
     ])
 
-    await supabase.from("resume").insert({
+    const [resumeRes, jdRes] = await Promise.all([
+        await supabase.from("resume").insert({
         filename: filename,
         text: resumeText,
         user_id: userId
 
-    })
+    }).select('id').single(),
 
     await supabase.from("job_desc").insert({
         title: tailoredJobDescription.title,
         company_name: (tailoredJobDescription.company ===null ? "N/A": tailoredJobDescription.company),
         description: tailoredJobDescription.description,
         user_id: userId
-    })
+    }).select('id').single()
 
-    await a
+    ])
+
+    if(resumeRes.error || jdRes.error){
+        console.error("Got an Insertion error", resumeRes.error || jdRes.error);
+    }
+        const resumeId = resumeRes.data?.id;
+        const jdId = jdRes.data?.id;
+      
+
+
+
+    const {data: analysisData, error:analysicError} = await supabase.from("analysis_result").insert({
+        match_score: feedback.match_score,
+        summary: feedback.summary,
+        strengths: feedback.strengths,
+        missing_skills: feedback.missing_skills,
+        weak_points: feedback.weak_points,
+        resume_id: resumeId,
+        desc_id: jdId
+
+    }).select('id').single();
+    if(analysicError){
+        console.error("Interst error", analysicError)
+    } 
+    const analysicId = analysisData?.id;
     
 
-   
-
-    
-    
-
-     
-
-
-
-
-    
-    
-    
-
-    
-
-
-    
 
     if(!file){
         return NextResponse.json({success: false})
     }
 
-    return NextResponse.json({success: true, filename, feedback})
+    return NextResponse.json({success: true, filename, feedback, analysicId})
 
     
   }
