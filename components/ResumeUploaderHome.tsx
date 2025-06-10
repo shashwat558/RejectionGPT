@@ -13,32 +13,41 @@ const ResumeUploaderHome = () => {
     const {user} = useAuth();
     
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if(!resume) return 
+        if (!resume) return;
 
         try {
             setIsLoading(true);
-            const data = new FormData();
 
+            const data = new FormData();
             data.set("resume", resume);
             data.set("jobDesc", jobDesc || "");
-            
-
 
             const response = await fetch("/api/analyzer", {
-                method: "POST",
-                body: data
-            })
-            setIsLoading(false)
-            if(!response.ok) throw new Error; (await response.text())
-        } catch (error) {
-             console.error(error)            
-             setIsLoading(false)
-        }
+            method: "POST",
+            body: data,
+            });
 
-    }
+            setIsLoading(false);
+
+            if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+            }
+
+            const result = await response.json();
+            const analysisId = result.analysisId;
+
+            if (!analysisId) throw new Error("Missing analysisId in response");
+
+            router.push(`/analyze/${analysisId}`);
+        } catch (error) {
+            console.error("Error during analysis upload:", error);
+            setIsLoading(false);
+        }
+};
 
     
 
@@ -135,7 +144,7 @@ const ResumeUploaderHome = () => {
                                 accept=".pdf,.doc,.docx"
                                 className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
                                 onChange={(e) => setResume(e.target.files ? e.target.files[0] : null)}
-                                disabled={isLoading}
+                                
                                 required
                             />
                             {resume && (

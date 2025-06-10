@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     if(analysicError){
         console.error("Interst error", analysicError)
     } 
-    const analysicId = analysisData?.id;
+    const analysisId = analysisData?.id;
     
 
 
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({success: false})
     }
 
-    return NextResponse.json({success: true, filename, feedback, analysicId})
+    return NextResponse.json({success: true, filename, feedback, analysisId})
 
     
   }
