@@ -125,6 +125,7 @@ export async function POST(req: NextRequest) {
     const docs = await loader.load();
     const resumeText = docs[0].pageContent;
 
+
     
 
     
@@ -167,7 +168,10 @@ export async function POST(req: NextRequest) {
         missing_skills: feedback.missing_skills,
         weak_points: feedback.weak_points,
         resume_id: resumeId,
-        desc_id: jdId
+        desc_id: jdId,
+        company_name: tailoredJobDescription.company,
+        job_role: tailoredJobDescription.title,
+        user_id: user.data.user?.id
 
     }).select('id').single();
     if(analysicError){
