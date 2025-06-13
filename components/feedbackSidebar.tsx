@@ -30,11 +30,13 @@ export default function FeedbackSidebar({ feedbacks, currentId }: FeedbackSideba
   )
 
   const getScoreColor = (score: string) => {
-    if (score === "High") return "bg-green-500/20 text-green-400"
-    if (score === "Medium") return "bg-yellow-500/20 text-yellow-400"
-    return "bg-red-500/20 text-red-400"
-  }
+  const numeric = parseInt(score.replace("%", ""));
+  const clamped = Math.max(0, Math.min(numeric, 100));
+  
+  const hue = (clamped * 1.2);
 
+  return `bg-[hsl(${hue},70%,20%)] text-[hsl(${hue},70%,60%)]`;
+};
   return (
     <div
       className={`h-screen flex flex-col border-r border-[#383838] bg-[#1e1e1e] transition-all duration-300 ${

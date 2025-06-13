@@ -21,7 +21,7 @@ export async function getAllFeedbacks() {
     const supabase = await createClientServer();
     const user = await supabase.auth.getUser();
     const userId = user.data.user?.id;
-    const {data: allFeedbackData, error: fetchError} = await supabase.from("analysis_result").select("id, job_role, company_name, match_score, createdAt").eq("user_id", userId);
+    const {data: allFeedbackData, error: fetchError} = await supabase.from("analysis_result").select("id, job_role, company_name, match_score, createdAt, summary").eq("user_id", userId);
 
     if(fetchError || !allFeedbackData){
         console.log(fetchError.message);
@@ -34,6 +34,7 @@ export async function getAllFeedbacks() {
     company: item.company_name,
     date: new Date(item.createdAt).toLocaleDateString(),
     matchScore: item.match_score,
+    description: item.summary
   }));
 
   return feedbacks;

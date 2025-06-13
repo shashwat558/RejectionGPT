@@ -3,15 +3,17 @@ interface MatchScoreBadgeProps {
 }
 
 export default function MatchScoreBadge({ score }: MatchScoreBadgeProps) {
-  let color = "bg-yellow-500/20 text-yellow-400"
-  let width = "w-1/3"
+  const scoreNumber = parseInt(score.replace("%", "")) || 0
 
-  if (score === "High") {
+  let color = "bg-yellow-500/20 text-yellow-400"
+  let barColor = "bg-yellow-400"
+
+  if (scoreNumber >= 80) {
     color = "bg-green-500/20 text-green-400"
-    width = "w-full"
-  } else if (score === "Low") {
+    barColor = "bg-green-400"
+  } else if (scoreNumber < 50) {
     color = "bg-red-500/20 text-red-400"
-    width = "w-1/6"
+    barColor = "bg-red-400"
   }
 
   return (
@@ -21,7 +23,10 @@ export default function MatchScoreBadge({ score }: MatchScoreBadgeProps) {
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${color}`}>{score}</span>
       </div>
       <div className="w-full h-2 bg-[#333] rounded-full overflow-hidden">
-        <div className={`h-full ${color.replace("text-", "bg-")} ${width}`}></div>
+        <div
+          className={`h-full ${barColor}`}
+          style={{ width: `${scoreNumber}%` }}
+        ></div>
       </div>
     </div>
   )

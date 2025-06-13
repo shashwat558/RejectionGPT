@@ -55,7 +55,7 @@ Your job is to give helpful, real feedback. Be clear, specific, and honest — e
 
 Respond in the following **JSON format**:
 
-{ "match_score": "Matching score of resume and job"
+{ "match_score": "Matching score of resume and job in percentage"
   "summary": "Short overview of how well the resume matches the job.",
   "strengths": ["List of things the resume does well."],
   "missing_skills": ["Skills or tools the job asks for but are missing or vague in the resume."],
