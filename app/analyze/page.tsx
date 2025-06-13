@@ -6,7 +6,6 @@ import AnalyticsOverview from "@/components/analysisOverview"
 import FilterDropdown from "@/components/filterDropdown"
 import AnalysisCard from "@/components/analysisCard"
 
-
 export default async function AnalyzeDashboardPage() {
   
   const feedbackData = await getAllFeedbacks()
@@ -83,24 +82,8 @@ export default async function AnalyzeDashboardPage() {
           )}
         </div>
 
-        {/* Pagination */}
-        {feedbackData.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <div className="flex items-center gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-md bg-[#333] text-gray-300">1</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-[#333] text-gray-500 hover:text-gray-300 transition-colors">
-                2
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-[#333] text-gray-500 hover:text-gray-300 transition-colors">
-                3
-              </button>
-              <span className="text-gray-500 px-1">...</span>
-              <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-[#333] text-gray-500 hover:text-gray-300 transition-colors">
-                8
-              </button>
-            </div>
-          </div>
-        )}
+        
+        
       </div>
     </div>
   )

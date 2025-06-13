@@ -4,7 +4,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react'
 import { Roboto_Mono } from 'next/font/google'
 
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {AnimatePresence, motion} from "framer-motion";
 import { useAuth } from '@/stores/useAuth'
 import Image from 'next/image'
@@ -23,45 +23,27 @@ const navLinks = [
     
 ]
 
-const Robotomono = Roboto_Mono({
-    subsets: ["latin"],
-    weight: "300"
-})
+
 
 const Navbar = () => {
     const [isHovering, setIsHovering] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
+   
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const {user} = useAuth()
     console.log(user)
 
 
-   useEffect(() => {
-    const handleScroll = () => {
-        const scrollY = window.scrollY;
-        if (scrollY > 10) {
-            setIsScrolled(true)
-        
-        
-        } else {
-        setIsScrolled(false);
-        }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => window.removeEventListener("scroll", handleScroll);
-    }, [isScrolled]);
+   
   return (
     
     <AnimatePresence>
          
         
         
-    <motion.nav initial={{ top: 15 }}
-        animate={{ top: isScrolled ? 0 : 15 }}
+    <motion.nav initial={{ y: -15 }}
+        animate={{ y:0 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
-        className={`w-full  z-50 flex justify-center items-center   ${Robotomono.className} ${isScrolled ? "bg-gradient-to-b from-black/10 to-black/40 backdrop-blur-md" : "bg-transparent"}`}
+        className={`w-full  z-50 flex justify-center items-center absolute`}
         style={{ position: "sticky" }}>
             
         <div className='xl:w-2/3 md:p-3 max-sm:p-4  w-full bg-transparent pt-5'>

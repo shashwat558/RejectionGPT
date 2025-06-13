@@ -4,8 +4,7 @@ import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 
 import { createClientServer } from "@/lib/utils/supabase/server";
 import {GoogleGenAI} from '@google/genai';
-// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-// import { VertexAIEmbeddings } from "@langchain/google-vertexai";
+
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
 
@@ -28,7 +27,9 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
 
     const response = await genAI.models.generateContent({
         model: "gemini-1.5-flash",
-        contents: Prompt,
+        contents: [
+            {role: "user", parts: [{text: Prompt}]}
+        ],
         
         
     })
@@ -90,7 +91,9 @@ Now compare them and write the JSON response. Be useful, be honest, and let your
 
     const response = await genAI.models.generateContent({
         model: "gemini-1.5-flash",
-        contents: Prompt
+        contents: [{
+            role: "user", parts: [{text: Prompt}]
+        }]
     })
 
     const result = response.text;

@@ -40,7 +40,7 @@ export default function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
         </div>
       </div>
 
-      {/* Match Rate */}
+     
       <div className="bg-[#252525] border border-[#383838] rounded-lg p-5">
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-gray-500 text-sm font-medium">Match Rate</h3>
@@ -83,7 +83,7 @@ export default function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
         </div>
       </div>
 
-      {/* Common Feedback */}
+      
       <div className="bg-[#252525] border border-[#383838] rounded-lg p-5">
         <h3 className="text-gray-500 text-sm font-medium mb-4">Common Feedback</h3>
         <div className="space-y-2">
