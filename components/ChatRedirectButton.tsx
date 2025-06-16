@@ -1,12 +1,13 @@
 "use client"
 import { initConversation } from '@/lib/actions/actions';
-import { redirect } from 'next/navigation';
+import {  useRouter } from 'next/navigation';
 import React from 'react'
 
 const ChatRedirectButton = ({descId, resumeId}: {descId: string, resumeId: string}) => {
+    const router = useRouter();
     const handleClick = async() => {
     const chatId = await initConversation({jdId: descId, resumeId: resumeId});
-    redirect(`/chat/${chatId}`)
+    router.push(`/chat/${chatId}`)
 
   } 
   return (

@@ -2,6 +2,7 @@
 
 import { FeedbackItem } from "@/components/feedbackSidebar";
 import { createClientServer } from "../utils/supabase/server"
+import { GoogleGenAI } from "@google/genai";
 
 export async function getFeedback({analysisId}: {analysisId: string}){
     const supabase = await createClientServer();
@@ -57,6 +58,29 @@ export async function initConversation({resumeId, jdId}: {resumeId: string, jdId
         throw new Error("Insertion error");
         
     }
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/embed/init`, {
+        method: "POST",
+        body: JSON.stringify({
+            userId: user.data.user?.id,
+            resumeId: resumeId,
+            jdId: jdId
+        })
+    })
     console.log(ChatId)
-    return ChatId;
+    return ChatId.id;
+}
+
+export async function embeddStore({resumeId, jdId}: {resumeId: string, jdId: string}) {
+    const supabase = await createClientServer();
+    const genAi = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+    const [resumeData, jobData] = await Promise.all([
+        supabase.from("resume").select('text').eq('id', resumeId).single()
+    , supabase.from("job_desc").select('title, company_name, description').eq('id', jdId).single()]);
+
+    if(resumeData.error || jobData.error){
+        const errorMsg = `Error getting data: ${resumeData.error?.message ?? ''} ${jobData.error?.message ?? ''}`;
+        throw new Error(errorMsg.trim());
+    }
+
+    
 }

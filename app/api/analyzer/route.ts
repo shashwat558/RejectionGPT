@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     const userId = user.data.user?.id;
     const data = await req.formData();
     const file: File| null = data.get("resume") as unknown as File;
-    const filename = file.size;
+    const filename = file.name;
     const jobDesc: string = data.get("jobDesc") as unknown as string;
     const loader = new PDFLoader(file);
     const docs = await loader.load();
