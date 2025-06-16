@@ -19,8 +19,14 @@ export default function AnalysisCard({ feedback }: AnalysisCardProps) {
   
   const hue = (clamped * 1.2);
 
-  return `bg-[hsl(${hue},70%,20%)] text-[hsl(${hue},70%,60%)]`;
+   return {
+    backgroundColor: `hsl(${hue}, 70%, 20%)`,
+    color: `hsl(${hue}, 70%, 60%)`
+  };
 };
+
+
+const { backgroundColor, color } = getScoreColor(feedback.matchScore);
 
 
   return (
@@ -28,7 +34,7 @@ export default function AnalysisCard({ feedback }: AnalysisCardProps) {
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-gray-300 font-medium truncate max-w-[80%]">{feedback.jobTitle}</h3>
-          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getScoreColor(feedback.matchScore)}`}>
+          <div className={`px-2 py-1 rounded-full text-xs font-medium`} style={{ backgroundColor, color }}>
             {feedback.matchScore}
           </div>
         </div>

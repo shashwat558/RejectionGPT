@@ -41,3 +41,22 @@ export async function getAllFeedbacks() {
 
 
 }
+
+export async function initConversation({resumeId, jdId}: {resumeId: string, jdId: string}) {
+    const supabase = await createClientServer();
+    const user = await supabase.auth.getUser();
+
+    const {data: ChatId, error} = await supabase.from("conversation").insert({
+        user_id: user.data.user?.id,
+        resume_id: resumeId,
+        job_desc_id: jdId,
+
+    }).select('id').single();
+
+    if(error || !ChatId){
+        throw new Error("Insertion error");
+        
+    }
+    console.log(ChatId)
+    return ChatId;
+}

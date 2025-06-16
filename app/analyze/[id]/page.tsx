@@ -1,9 +1,10 @@
 import ActionButtons from "@/components/actionButton"
+import ChatRedirectButton from "@/components/ChatRedirectButton"
 import FeedbackSection from "@/components/feedbackSection"
 import FeedbackSidebar from "@/components/feedbackSidebar"
 import MatchScoreBadge from "@/components/MatchScore"
 import MobileSidebarToggle from "@/components/mobileSidebar"
-import { getAllFeedbacks, getFeedback } from "@/lib/actions/actions"
+import { getAllFeedbacks, getFeedback} from "@/lib/actions/actions"
 import { CheckCircle, XCircle, AlertTriangle, ArrowLeft, Star, Zap, FileText } from "lucide-react"
 import Link from "next/link"
 
@@ -11,9 +12,14 @@ import Link from "next/link"
 
 
 
+
+
 export default async function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  
   const analysisData = await getFeedback({ analysisId: id })
+
+
 
   
   const feedbackHistory = await getAllFeedbacks();
@@ -37,9 +43,11 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
       <div className="flex-1 overflow-y-auto">
         <div className="w-full flex flex-col items-center p-2 pt-10">
           <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-[#303030]/20 to-transparent pointer-events-none" />
-
+           
           <div className="max-w-4xl w-full p-6 md:p-8 flex flex-col rounded-lg border-t-3 border-[#383838] bg-[#252525] shadow-xl relative z-10">
+            
             <div className="flex justify-between items-center mb-6">
+              <ChatRedirectButton resumeId={analysisData.resume_id} descId={analysisData.desc_id} />
               <Link href="/" className="flex items-center text-gray-400 hover:text-gray-300 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Upload
