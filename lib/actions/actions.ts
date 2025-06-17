@@ -1,4 +1,5 @@
 "use server"
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 import { FeedbackItem } from "@/components/feedbackSidebar";
 import { createClientServer } from "../utils/supabase/server"
@@ -70,7 +71,22 @@ export async function initConversation({resumeId, jdId}: {resumeId: string, jdId
     return ChatId.id;
 }
 
-export async function embeddStore({resumeId, jdId}: {resumeId: string, jdId: string}) {
+const textSplitter = async (text:string) => {
+    const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200
+    });
+
+
+    const chunks = await splitter.createDocuments([text]);
+    const chunkTexts = chunks.map(doc => doc.pageContent);
+    return chunkTexts; 
+
+}
+
+
+
+export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: string}) {
     const supabase = await createClientServer();
     const genAi = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
     const [resumeData, jobData] = await Promise.all([
@@ -81,6 +97,12 @@ export async function embeddStore({resumeId, jdId}: {resumeId: string, jdId: str
         const errorMsg = `Error getting data: ${resumeData.error?.message ?? ''} ${jobData.error?.message ?? ''}`;
         throw new Error(errorMsg.trim());
     }
+
+   
+
+
+
+
 
     
 }
