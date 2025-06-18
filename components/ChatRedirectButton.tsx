@@ -7,6 +7,7 @@ const ChatRedirectButton = ({descId, resumeId}: {descId: string, resumeId: strin
     const router = useRouter();
     const handleClick = async() => {
     const chatId = await initConversation({jdId: descId, resumeId: resumeId});
+    
     router.push(`/chat/${chatId}`)
 
   } 

@@ -59,14 +59,11 @@ export async function initConversation({resumeId, jdId}: {resumeId: string, jdId
         throw new Error("Insertion error");
         
     }
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/embed/init`, {
-        method: "POST",
-        body: JSON.stringify({
-            userId: user.data.user?.id,
-            resumeId: resumeId,
-            jdId: jdId
-        })
-    })
+    try {
+   embedAndStore({resumeId: resumeId, jdId: jdId})
+} catch (e) {
+  console.error("Embedding trigger failed", e);
+}
     console.log(ChatId)
     return ChatId.id;
 }
@@ -84,14 +81,17 @@ const textSplitter = async (text:string) => {
 
 }
 
-
+const genAi = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+console.log(process.env.GEMINI_API_KEY + " This is gemini key")
 
 export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: string}) {
     const supabase = await createClientServer();
-    const genAi = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+    
     const [resumeData, jobData] = await Promise.all([
         supabase.from("resume").select('text, id').eq('id', resumeId).single()
     , supabase.from("job_desc").select('title, company_name, description, id').eq('id', jdId).single()]);
+
+    console.log(resumeData.data?.id, jobData.data?.id)
 
     if(resumeData.error || jobData.error){
         const errorMsg = `Error getting data: ${resumeData.error?.message ?? ''} ${jobData.error?.message ?? ''}`;
@@ -103,35 +103,47 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
     textSplitter(jobData.data.description + jobData.data.title + jobData.data.company_name)
    ]);
 
+   console.log("these are lengths", resumeChunk.length, jobDescChhunk.length)
+
    await Promise.all([
-    Promise.all([ resumeChunk.map(async(chunk, i) => {
+    ...resumeChunk.map(async(chunk, i) => {
         const embeddingResponse = await genAi.models.embedContent({
-            model: "text-embedding-04",
+            model: "text-embedding-004",
             contents: chunk
         });
         const embeddingValue = embeddingResponse?.embeddings && embeddingResponse.embeddings[0]?.values;
 
-        await supabase.from("resume_chunks").insert({
+        const {error} = await supabase.from("resume_chunks").insert({
             chunk_index: i,
             content: chunk,
             embedding: embeddingValue,
             resume_id: resumeData.data.id
         });
-    })]), 
-    Promise.all([jobDescChhunk.map(async(chunk, i) => {
+        if(error){
+            console.log(error.details + "This is resue error")
+        }
+    }), 
+    ...jobDescChhunk.map(async(chunk, i) => {
+        
         const embeddingResponse = await genAi.models.embedContent({
-            model: "text-embedding-04",
+            model: "text-embedding-004",
             contents: chunk
         });
         const embeddingValue = embeddingResponse.embeddings && embeddingResponse.embeddings[0].values;
+        console.log(embeddingValue)
 
-        await supabase.from("job_desc_chunk").insert({
+        const {data, error} = await supabase.from("job_desc_chunks").insert({
             content: chunk,
             chunk_index: i,
             embedding: embeddingValue,
             job_desc_id: jobData.data.id
-        });
-    })])
+        }).select('id');
+
+        if(error){
+            console.log(error.message + "This is jd error")
+        }
+        
+    })
    ])
 
 
