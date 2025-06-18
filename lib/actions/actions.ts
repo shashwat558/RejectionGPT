@@ -90,15 +90,49 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
     const supabase = await createClientServer();
     const genAi = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
     const [resumeData, jobData] = await Promise.all([
-        supabase.from("resume").select('text').eq('id', resumeId).single()
-    , supabase.from("job_desc").select('title, company_name, description').eq('id', jdId).single()]);
+        supabase.from("resume").select('text, id').eq('id', resumeId).single()
+    , supabase.from("job_desc").select('title, company_name, description, id').eq('id', jdId).single()]);
 
     if(resumeData.error || jobData.error){
         const errorMsg = `Error getting data: ${resumeData.error?.message ?? ''} ${jobData.error?.message ?? ''}`;
         throw new Error(errorMsg.trim());
     }
 
-   
+   const [resumeChunk, jobDescChhunk] = await Promise.all([
+    textSplitter(resumeData.data.text),
+    textSplitter(jobData.data.description + jobData.data.title + jobData.data.company_name)
+   ]);
+
+   await Promise.all([
+    Promise.all([ resumeChunk.map(async(chunk, i) => {
+        const embeddingResponse = await genAi.models.embedContent({
+            model: "text-embedding-04",
+            contents: chunk
+        });
+        const embeddingValue = embeddingResponse?.embeddings && embeddingResponse.embeddings[0]?.values;
+
+        await supabase.from("resume_chunks").insert({
+            chunk_index: i,
+            content: chunk,
+            embedding: embeddingValue,
+            resume_id: resumeData.data.id
+        });
+    })]), 
+    Promise.all([jobDescChhunk.map(async(chunk, i) => {
+        const embeddingResponse = await genAi.models.embedContent({
+            model: "text-embedding-04",
+            contents: chunk
+        });
+        const embeddingValue = embeddingResponse.embeddings && embeddingResponse.embeddings[0].values;
+
+        await supabase.from("job_desc_chunk").insert({
+            content: chunk,
+            chunk_index: i,
+            embedding: embeddingValue,
+            job_desc_id: jobData.data.id
+        });
+    })])
+   ])
 
 
 
