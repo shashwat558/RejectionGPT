@@ -152,3 +152,35 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
 
     
 }
+
+export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeText: string, jobDescText: string, userPrompt: string}) {
+    
+    const prompt = `
+
+     you are a helpful ai assistant who will help user in order to get a job by answering the question based on resumeText and jobDescText.
+
+     Note: give short and precise answers
+
+     this is resumeText:
+     ${resumeText}
+
+     this is jobDescText: 
+     ${jobDescText}
+
+     this is user prompt:
+     ${userPrompt}
+
+
+    `
+
+    const response = await genAi.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: prompt,
+        
+
+    })
+
+    const result = response.text;
+    return result;
+
+}
