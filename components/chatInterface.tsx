@@ -72,16 +72,25 @@ export default function ChatInterface() {
   });
 
   if (res.ok) {
-    const data = await res.json();
-    const message: Message = {
-      id: Date.now().toString(),
-      content: data.answer,
-      role: "assistant",
-      timestamp: new Date,
-      isTyping: false
+    const data = res.body?.getReader();
+    const decoder = new TextDecoder();
+    let result = "";
 
+    while(true){
+      const {done, value} = await data?.read();
+      if(done){
+        break
+      }
+      console.log(value)
+      const chunk = decoder.decode(value);
+      result += chunk
+      console.log("Chunk:", chunk)
     }
-    setMessages((prev) => [...prev, message])
+
+    console.log(result)
+
+  
+    
   } else {
     const text = await res.text();
     console.error("Error response:", text); 

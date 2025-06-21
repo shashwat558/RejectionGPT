@@ -89,9 +89,15 @@ console.log(resume_id, job_desc_id);
     const answer = await aiAnswer({jobDescText: finalJobDescChunks, resumeText: finalResumeChunks, userPrompt: prompt });
     
 
-    console.log(finalJobDescChunks, finalResumeChunks)
+
     
-    return NextResponse.json({answer})
+    return new NextResponse(answer, {
+      headers: {
+        "Content-Type": "text/plain",
+        "Transfer-Encoding": "chunked"
+
+      }
+    })
 
 
 

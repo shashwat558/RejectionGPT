@@ -181,21 +181,29 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
 
     `
 
-    const response = await genAi.models.generateContent({
+    const response = await genAi.models.generateContentStream({
         model: "gemini-1.5-flash",
         contents: prompt,
         
 
     })
 
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+        async start(controller){
+            for await (const chunk of response){
+                const text = chunk.text;
+                
+                controller.enqueue(encoder.encode(text));
+                
+
+            }
+            controller.close()
+        }
+    })
+   
+    return stream;
     
-    const result = response.text;
-    const match = result?.match(/```json\s*([\s\S]*?)```/);
-    const jsonString = match ? match[1].trim() : result?.trim();
-    const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
-    const answerObj = JSON.parse(sanitizedJsonString || '{}');
-    
-    return answerObj.answer;
     
     
     
