@@ -159,7 +159,9 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
 
      you are a helpful ai assistant who will help user in order to get a job by answering the question based on resumeText and jobDescText.
 
-     Note: give short and precise answers
+     Note:1) give short and precise answers
+          2) give answer in json format
+
 
      this is resumeText:
      ${resumeText}
@@ -169,6 +171,12 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
 
      this is user prompt:
      ${userPrompt}
+
+     example output: 
+     json
+     {
+     answer: "here your response will come"
+     }
 
 
     `
@@ -180,7 +188,16 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
 
     })
 
+    
     const result = response.text;
-    return result;
+    const match = result?.match(/```json\s*([\s\S]*?)```/);
+    const jsonString = match ? match[1].trim() : result?.trim();
+    const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
+    console.log(result)
+    
+    
+    
+
+    
 
 }

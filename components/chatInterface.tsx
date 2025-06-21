@@ -36,32 +36,7 @@ export default function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  useEffect(() => {
-    const apiHit = async () => {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  const res = await fetch(`${siteUrl}/api/chat/message`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      conversationId: "a2122fd3-e3b1-47ce-be29-1b18c3180064",
-      prompt: "should i learn full stack development"
-    })
-  });
-
-  if (res.ok) {
-    const data = await res.json();
-    console.log(data);
-  } else {
-    const text = await res.text();
-    console.error("Error response:", text); 
-  }
-    }
-
-  apiHit()
-  },[])
 
   useEffect(() => {
     scrollToBottom()
@@ -82,16 +57,30 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateAIResponse(input),
-        role: "assistant",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, aiMessage])
-      setIsLoading(false)
-    }, 1500)
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+
+      const res = await fetch(`${siteUrl}/api/chat/message`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      conversationId: "a2122fd3-e3b1-47ce-be29-1b18c3180064",
+      prompt: input
+    })
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    console.log(data)
+  } else {
+    const text = await res.text();
+    console.error("Error response:", text); 
+  }
+    
+
+
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

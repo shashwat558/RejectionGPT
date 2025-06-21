@@ -51,6 +51,8 @@ console.log(resume_id, job_desc_id);
       }),
     ]);
 
+    console.log(resume_chunks, job_chunks)
+
     
 
     if (!resume_chunks || !job_chunks) {
@@ -61,25 +63,33 @@ console.log(resume_id, job_desc_id);
       throw new Error(`Got an error: ${errorMsg}`);
     }
 
-    let finalResumeChunks = resume_chunks.data.length > 0 && resume_chunks.data[0].content || [];
-    let finalJobDescChunks = job_chunks.data[0].content || [];
+    let finalResumeChunks = resume_chunks.data.map((c: {content: string}) => c.content) || [];
+    let finalJobDescChunks = job_chunks.data.map((c: {content: string}) => c.content) || [];
+
 
     if(finalResumeChunks.length === 0){
-      const fallbackResume = await supabase.from('resume_chunks').select('content').eq('resume_id', resume_id).order("chunk_index", {ascending: true}).limit(5);
+      const fallbackResume = 
+      (await supabase
+      .from('resume_chunks')
+      .select('content')
+      .eq('resume_id', resume_id)
+      .order("chunk_index", {ascending: true})
+      .limit(5)).data?.map((c) => c.content)
 
-      finalResumeChunks = fallbackResume.data && fallbackResume.data[0].content  || [];
+      finalResumeChunks = fallbackResume
     }
 
     if(finalJobDescChunks.length === 0){
-      const fallbackJobChunks = await supabase.from("job_desc_chunks").select("content").eq("job_desc_id", job_desc_id).order("chunk_index", {ascending: true}).limit(5);
+      const fallbackJobChunks = (await supabase.from("job_desc_chunks").select("content").eq("job_desc_id", job_desc_id).order("chunk_index", {ascending: true}).limit(5)).data?.map((c) => c.content);
 
-      finalJobDescChunks = (fallbackJobChunks.data && fallbackJobChunks.data[0]?.content + fallbackJobChunks.data[1].content) || [];
+
+      finalJobDescChunks = fallbackJobChunks
     }
 
     const answer = await aiAnswer({jobDescText: finalJobDescChunks, resumeText: finalResumeChunks, userPrompt: prompt });
-    console.log(answer)
+    
 
-    console.log(finalJobDescChunks)
+    console.log(finalJobDescChunks, finalResumeChunks)
     
     return NextResponse.json({answer})
 

@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({success: false})
     }
 
-    return NextResponse.json({success: true, filename, feedback, analysisId})
+    return NextResponse.json({success: true, analysisId})
 
     
   }
