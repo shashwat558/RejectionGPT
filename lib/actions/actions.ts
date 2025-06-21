@@ -193,7 +193,9 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
     const match = result?.match(/```json\s*([\s\S]*?)```/);
     const jsonString = match ? match[1].trim() : result?.trim();
     const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
-    console.log(result)
+    const answerObj = JSON.parse(sanitizedJsonString || '{}');
+    
+    return answerObj.answer;
     
     
     

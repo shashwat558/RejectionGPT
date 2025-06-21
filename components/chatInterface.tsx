@@ -73,7 +73,15 @@ export default function ChatInterface() {
 
   if (res.ok) {
     const data = await res.json();
-    console.log(data)
+    const message: Message = {
+      id: Date.now().toString(),
+      content: data.answer,
+      role: "assistant",
+      timestamp: new Date,
+      isTyping: false
+
+    }
+    setMessages((prev) => [...prev, message])
   } else {
     const text = await res.text();
     console.error("Error response:", text); 
