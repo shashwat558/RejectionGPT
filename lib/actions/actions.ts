@@ -191,14 +191,17 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
         async start(controller){
+         
             for await (const chunk of response){
                 const text = chunk.text;
+                
                 
                 controller.enqueue(encoder.encode(text));
                 
 
             }
             controller.close()
+            
         }
     })
    

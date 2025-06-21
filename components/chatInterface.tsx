@@ -43,24 +43,31 @@ export default function ChatInterface() {
   }, [messages])
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return
+  if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      role: "user",
-      timestamp: new Date(),
-    }
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    content: input,
+    role: "user",
+    timestamp: new Date(),
+  };
 
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsLoading(true)
+  setMessages((prev) => [...prev, userMessage]);
+  setInput("");
+  setIsLoading(true);
 
-    // Simulate AI response
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const assistantMessage: Message = {
+    id: "ai-" + Date.now().toString(),
+    content: "",
+    role: "assistant",
+    timestamp: new Date(),
+    isTyping: true,
+  };
 
+  setMessages((prev) => [...prev, assistantMessage]);
 
-      const res = await fetch(`${siteUrl}/api/chat/message`, {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const res = await fetch(`${siteUrl}/api/chat/message`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -71,34 +78,47 @@ export default function ChatInterface() {
     })
   });
 
-  if (res.ok) {
-    const data = res.body?.getReader();
+  if (res.ok && res.body) {
+    const data = res.body.getReader();
     const decoder = new TextDecoder();
     let result = "";
 
-    while(true){
-      const {done, value} = await data?.read();
-      if(done){
-        break
-      }
-      console.log(value)
+    while (true) {
+      const { done, value } = await data.read();
+      if (done) break;
+
       const chunk = decoder.decode(value);
-      result += chunk
-      console.log("Chunk:", chunk)
+      result += chunk;
+
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === assistantMessage.id
+            ? { ...msg, content: result }
+            : msg
+        )
+      );
     }
 
-    console.log(result)
-
-  
-    
+   
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.id === assistantMessage.id
+          ? { ...msg, isTyping: false }
+          : msg
+      )
+    );
   } else {
     const text = await res.text();
-    console.error("Error response:", text); 
+    console.error("Error response:", text);
   }
+
+  setIsLoading(false);
+};
+
     
 
 
-  }
+  
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
