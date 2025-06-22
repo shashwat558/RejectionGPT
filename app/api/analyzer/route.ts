@@ -93,7 +93,10 @@ Now compare them and write the JSON response. Be useful, be honest, and let your
         model: "gemini-1.5-flash",
         contents: [{
             role: "user", parts: [{text: Prompt}]
-        }]
+        }],
+        config: {
+            temperature: 0.9
+        }
     })
 
     const result = response.text;

@@ -20,14 +20,20 @@ interface Message {
 
 export default function ChatInterface({conversationId}: {conversationId: string}) {
   const {messages, setMessages} = useMessages();
-  const [input, setInput] = useState("")
+  const [input, setInput] = useState("");
+  const [lastInput, setLastInput] = useState("");
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // let conversationHistory: Array<{role: string, parts: [{text:string}]}> = [];
+
+   
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
+
+ 
 
 
   useEffect(() => {
@@ -47,6 +53,8 @@ export default function ChatInterface({conversationId}: {conversationId: string}
 
   const handleSend = async () => {
   if (!input.trim() || isLoading) return;
+
+  
 
   const userMessage: Message = {
     id: Date.now().toString(),
@@ -76,8 +84,9 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      conversationId: "a2122fd3-e3b1-47ce-be29-1b18c3180064",
-      prompt: input
+      conversationId: conversationId,
+      prompt: input,
+      // conversationHistory: conversationHistory
     })
   });
 
@@ -93,6 +102,8 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       const chunk = decoder.decode(value);
       result += chunk;
 
+
+
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === assistantMessage.id
@@ -101,6 +112,11 @@ export default function ChatInterface({conversationId}: {conversationId: string}
         )
       );
     }
+
+    // conversationHistory.push({role: "user", parts:[{text:input}]});
+    // conversationHistory.push({role: "assistant", parts:[{text: result}]});
+
+    // console.log(conversationHistory)
 
    
     setMessages((prevMessages) =>
@@ -118,6 +134,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   setIsLoading(false);
 };
 
+
     
 
 
@@ -129,14 +146,21 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       handleSend()
     }
   }
+  
 
   const handleQuickAction = (action: string) => {
     setInput(action)
     textareaRef.current?.focus()
   }
 
-  const regenerateResponse = (messageId: string) => {
-    
+  const regenerateResponse = async (messageId: string) => {
+    const lastUserMessage = [...messages].reverse().find(message => message.role === "user");
+    const lastInput = lastUserMessage?.content;
+    console.log(lastInput);
+    setInput(lastInput ?? "");
+    setLastInput(lastInput ?? "");
+   
+
     console.log("Regenerating response for message:", messageId)
   }
 

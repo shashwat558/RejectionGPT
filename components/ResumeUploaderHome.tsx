@@ -15,7 +15,9 @@ const ResumeUploaderHome = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+        if(!user){
+            router.push("/login")
+        }
         if (!resume) return;
 
         try {

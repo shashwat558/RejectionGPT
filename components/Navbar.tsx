@@ -1,13 +1,16 @@
 "use client"
 
 import { ArrowRight, ChevronDown } from 'lucide-react'
-import { Roboto_Mono } from 'next/font/google'
+
 
 import Link from 'next/link'
 import React, { useState } from 'react'
 import {AnimatePresence, motion} from "framer-motion";
 import { useAuth } from '@/stores/useAuth'
 import Image from 'next/image'
+import { signOut } from '@/app/actions'
+import { useRouter } from 'next/navigation';
+
 
 
 
@@ -27,9 +30,10 @@ const navLinks = [
 
 const Navbar = () => {
     const [isHovering, setIsHovering] = useState(false);
-   
+    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const {user} = useAuth()
+    const {user, setUser} = useAuth()
+    const router = useRouter();
     console.log(user)
 
 
@@ -63,8 +67,8 @@ const Navbar = () => {
 
             </div>
             <button  onClick={() => setIsMenuOpen(true)} className='xl:hidden  cursor-pointer md:hidden'><ChevronDown className='w-7 h-7 text-gray-300'/></button>
-            <div className='flex items-center gap-3'>
-            <Link href={user ? "/profile": "/login"}>
+            <div className='flex flex-col items-center gap-3'>
+            
             <motion.button
             initial={{ scale: 1 }}
             whileHover={{
@@ -76,6 +80,15 @@ const Navbar = () => {
             className='relative isolate inline-flex items-center justify-center text-base/6 uppercase font-mono tracking-widest shrink-0 focus:outline-none data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500 data-[disabled]:opacity-50 [&>[data-slot=icon]]:-mx-0.5 [&>[data-slot=icon]]:my-0.5 [&>[data-slot=icon]]:shrink-0 [&>[data-slot=icon]]:sm:my-1 px-4 py-2 sm:text-sm [&>[data-slot=icon]]:size-5 [&>[data-slot=icon]]:sm:size-4 gap-x-3 bg-[--btn-bg] [--btn-bg:transparent] [--btn-border:theme(colors.primary/25%)] [--btn-text:theme(colors.primary)] [--btn-hover:theme(colors.secondary/20%)] text-center w-auto p-2 rounded-full border-[0.3px] border-gray-400 shadow-none cursor-pointer '
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
+            onClick={async () => {
+                    if (user) {
+                      await signOut();
+                      setUser(null);
+                      router.push("/");
+                    } else {
+                      router.push("/login");
+                    }
+                  }}
             layout
             >
             
@@ -96,7 +109,7 @@ const Navbar = () => {
                 )}
             </AnimatePresence>
             </motion.button>
-            </Link>
+           
            
             </div>
       

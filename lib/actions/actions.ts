@@ -3,7 +3,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 import { FeedbackItem } from "@/components/feedbackSidebar";
 import { createClientServer } from "../utils/supabase/server"
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 export async function getFeedback({analysisId}: {analysisId: string}){
     const supabase = await createClientServer();
@@ -44,28 +44,52 @@ export async function getAllFeedbacks() {
 
 }
 
-export async function initConversation({resumeId, jdId}: {resumeId: string, jdId: string}) {
-    const supabase = await createClientServer();
-    const user = await supabase.auth.getUser();
+export async function initConversation({
+  resumeId,
+  jdId,
+}: {
+  resumeId: string;
+  jdId: string;
+}) {
+  const supabase = await createClientServer();
+  const user = await supabase.auth.getUser();
 
-    const {data: ChatId, error} = await supabase.from("conversation").insert({
-        user_id: user.data.user?.id,
-        resume_id: resumeId,
-        job_desc_id: jdId,
+  const { data: existingData, error: fetchError } = await supabase
+    .from("conversation")
+    .select("id")
+    .eq("job_desc_id", jdId)
+    .eq("resume_id", resumeId)
+    .eq("user_id", user.data.user?.id);
 
-    }).select('id').single();
+  if (fetchError) {
+    throw new Error("Failed to fetch existing conversation");
+  }
 
-    if(error || !ChatId){
-        throw new Error("Insertion error");
-        
-    }
-    try {
-   embedAndStore({resumeId: resumeId, jdId: jdId})
-} catch (e) {
-  console.error("Embedding trigger failed", e);
-}
-    console.log(ChatId)
-    return ChatId.id;
+  if (existingData && existingData.length > 0) {
+    return existingData[0].id;
+  }
+
+  const { data: chatData, error: insertError } = await supabase
+    .from("conversation")
+    .insert({
+      user_id: user.data.user?.id,
+      resume_id: resumeId,
+      job_desc_id: jdId,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !chatData) {
+    throw new Error("Insertion error");
+  }
+
+  try {
+    embedAndStore({ resumeId, jdId });
+  } catch (e) {
+    console.error("Embedding trigger failed", e);
+  }
+
+  return chatData.id;
 }
 
 const textSplitter = async (text:string) => {
@@ -155,7 +179,9 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
 
 export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeText: string, jobDescText: string, userPrompt: string}) {
     
-    const prompt = `
+
+    
+    const systemPrompt = `
 
      you are a helpful ai assistant who will help user in order to get a job by answering the question based on resumeText and jobDescText.
 
@@ -180,26 +206,59 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
 
 
     `
+    const history = [
+        {
+            role: "user",
+            parts: [
+                {text: systemPrompt}
+            ]
 
+        }
+    ]
+    history.push({
+    role: "user",
+    parts: [{text: userPrompt}]
+    })
     const response = await genAi.models.generateContentStream({
         model: "gemini-1.5-flash",
-        contents: prompt,
+        contents: history,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    answer: {
+                        type: Type.STRING
+                    }
+                }
+            }
+        }
         
 
     })
-
+    
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
         async start(controller){
-         
+            let result = "";
             for await (const chunk of response){
                 const text = chunk.text;
                 
+                
+                
+                result += text;
+
                 
                 controller.enqueue(encoder.encode(text));
                 
 
             }
+            history.push({
+                role: "assistant",
+                parts: [
+                    {text: result}
+                ]
+            })
             controller.close()
             
         }

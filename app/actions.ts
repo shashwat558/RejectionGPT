@@ -1,7 +1,7 @@
 "use server"
 
 import { createClientServer } from "@/lib/utils/supabase/server"
-import { supabase } from "@/supabase";
+
 import { redirect } from "next/navigation";
 
 
@@ -27,5 +27,6 @@ const signInWIth = provider => async () => {
 export const signInWIthGoogle = signInWIth('google');
 
 export const signOut = async () => {
+    const supabase = await createClientServer()
     return await supabase.auth.signOut();
 }
