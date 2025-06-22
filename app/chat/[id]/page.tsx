@@ -15,7 +15,7 @@ const page = async ({params}: {params: Promise<{id: string}>}) => {
 
       
       <div className="flex-1 flex flex-col">
-        <ChatInterface />
+        <ChatInterface conversationId={id} />
       </div>
     </div>
   )

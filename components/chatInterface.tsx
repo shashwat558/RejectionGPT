@@ -7,6 +7,7 @@ import { Send, Plus, Paperclip, Mic } from "lucide-react"
 import MessageBubble from "./MEssageBubble"
 import TypingIndicator from "./typingIndicator"
 import QuickActions from "./QuickActionButton"
+import { useMessages } from "@/stores/messageStore"
 
 
 interface Message {
@@ -17,16 +18,8 @@ interface Message {
   isTyping?: boolean
 }
 
-export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content:
-        "Hello! I'm your AI assistant. I can help you with resume analysis, job search advice, interview preparation, and much more. What would you like to work on today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-  ])
+export default function ChatInterface({conversationId}: {conversationId: string}) {
+  const {messages, setMessages} = useMessages();
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -37,6 +30,16 @@ export default function ChatInterface() {
   }
 
 
+  useEffect(() => {
+    useMessages?.persist.setOptions({
+      name: conversationId
+    });
+
+    useMessages.persist.rehydrate();
+
+    localStorage.removeItem("messages-storage")
+
+  },[conversationId])
 
   useEffect(() => {
     scrollToBottom()
@@ -145,7 +148,7 @@ export default function ChatInterface() {
   return (
     <div className="flex flex-col h-full">
       
-      <div className="flex items-center justify-between p-4 border-b border-[#383838] bg-[#252525]">
+      <div className="flex items-center justify-between p-4 border-b border-[#383838] ">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
             <span className="text-white text-sm font-medium">AI</span>

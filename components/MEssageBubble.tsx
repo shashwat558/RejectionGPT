@@ -56,7 +56,8 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
         
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs text-gray-500">
-            {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            {/* {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} */}
+            hi
           </span>
         </div>
 
