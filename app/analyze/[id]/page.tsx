@@ -2,6 +2,7 @@ import ActionButtons from "@/components/actionButton"
 import ChatRedirectButton from "@/components/ChatRedirectButton"
 import FeedbackSection from "@/components/feedbackSection"
 import FeedbackSidebar from "@/components/feedbackSidebar"
+import InterviewRedirectionBUtton from "@/components/INterviewRedirectionButton"
 import MatchScoreBadge from "@/components/MatchScore"
 import MobileSidebarToggle from "@/components/mobileSidebar"
 import { getAllFeedbacks, getFeedback} from "@/lib/actions/actions"
@@ -18,6 +19,11 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   
   const analysisData = await getFeedback({ analysisId: id })
+
+  
+
+
+
 
 
 
@@ -37,6 +43,8 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
       
       <MobileSidebarToggle feedbacks={feedbackHistory} currentId={id} />
 
+      
+ 
      
       <FeedbackSidebar feedbacks={feedbackHistory} currentId={id} />
 
@@ -48,10 +56,13 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
             
             <div className="flex justify-between items-center mb-6">
               <ChatRedirectButton resumeId={analysisData.resume_id} descId={analysisData.desc_id} />
+              <InterviewRedirectionBUtton analysisId={id}/>
+              
               <Link href="/" className="flex items-center text-gray-400 hover:text-gray-300 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Upload
               </Link>
+              
 
               <ActionButtons analysisId={id} />
             </div>

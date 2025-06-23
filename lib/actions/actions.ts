@@ -342,7 +342,23 @@ export async function generateInterviewQuestionsAndSaveToDb({interviewId}: {inte
             })
         
             const result = response.text;
-            console.log(result);
+            const sanitizedJsonString = JSON.parse(result ?? "");
+            const questions = sanitizedJsonString.questions;
+            
+            if(questions && questions.length > 0){
+                for(let i = 0; i < questions.length; i++) {
+                    await supabase.from("interview_questions").insert({
+                        interview_id: interviewId,
+                        question_text: questions[i],
+                        order: i + 1
+                    })
+                }
+            }
+
+            await supabase.from("interview").update({
+                started_at: new Date()
+            }).eq("id", interviewId).select('id').single();
+
         } catch (error) {
             console.log(error);
             
