@@ -273,3 +273,80 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
     
 
 }
+
+
+
+export async function generateInterviewQuestionsAndSaveToDb({interviewId}: {interviewId: string}) {
+    const supabase = await createClientServer();
+    
+
+
+    if(interviewId){
+
+        const {data: interviewData, error} = await supabase.from("interview").select('resume_id, job_desc_id').eq("id", interviewId).single();
+
+        if(error || !interviewData){
+            throw new Error(error.message)
+        }
+
+        const {resume_id, job_desc_id} = interviewData;
+
+        const [resumeData, jobData] = await Promise.all([
+            supabase.from("resume").select('text').eq('id', resume_id).single(),
+            supabase.from("job_desc").select("description").eq('id', job_desc_id).single()
+        ])
+
+        if(resumeData.error || jobData.error){
+            const error = resumeData.error ? resumeData.error : jobData.error;
+            throw new Error(error?.message);
+        }
+        const resumeText = resumeData.data.text;
+        const jdText = jobData.data.description;
+
+
+        try {
+          const prompt = `
+
+          You are an interview based on candidate's resumeText and job description text, generate 10 job-specific interview questions covering both behavioral and technical aspects.
+
+          resumeText: 
+          ${resumeText}
+
+          job description:
+          ${jdText}
+      
+          
+    `
+            const response = await genAi.models.generateContent({
+                model: "gemini-1.5-flash",
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            questions: {
+                                type: Type.ARRAY,
+
+                                items: {
+                                    type: Type.STRING
+            
+                                }
+
+                            }
+
+                        }
+
+                    }
+                }
+            })
+        
+            const result = response.text;
+            console.log(result);
+        } catch (error) {
+            console.log(error);
+            
+        }
+    }
+
+}
