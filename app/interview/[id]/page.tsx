@@ -7,7 +7,8 @@ const page = async ({params}: {params: Promise<{id: string}>}) => {
     console.log(id);
     const interviewQUestions = await getInterviewQuestions(id)
     const questions = interviewQUestions.map((question) => ({
-        id: question.order,
+        id: question.id,
+        index: question.order,
         question_text: question.question_text
     }))
     console.log(questions)

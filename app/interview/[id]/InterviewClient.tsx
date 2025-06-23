@@ -11,7 +11,7 @@ interface QuestionType {
 interface AnswerType {
     questionId: string,
     answerText: string,
-    timeSpent: string
+    timeSpent: number
 }
 
 
@@ -22,7 +22,7 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
     const [currentQuestionIndex , setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<AnswerType[]| []>([]);
     const [startTime, setStartTime] = useState<Date | null>(null);
-    const supabase = createClient()
+    const supabase = createClient();
 
     const handleStart = async () => {
         const {data: startTime, error} = await supabase.from("interview").update({
@@ -38,6 +38,18 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
 
 
     }
+    
+    const handleAnswerSubmit = async (answer: string, timeSpent: number) => {
+        const newAnswer:AnswerType = {
+            questionId: questions[currentQuestionIndex].id,
+            answerText: answer,
+            timeSpent: timeSpent
+
+        }
+        setAnswers((prev) => [...prev, newAnswer]);
+
+    }
+
   return (
     <div className=' text-white text-4xl' 
     >{interviewId}</div>

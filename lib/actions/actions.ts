@@ -368,7 +368,7 @@ export async function generateInterviewQuestionsAndSaveToDb({interviewId}: {inte
 
 export async function getInterviewQuestions(interviewId: string) {
     const supabase = await createClientServer();
-    const {data: questions, error} = await supabase.from("interview_questions").select("question_text, order").eq('interview_id', interviewId).limit(10)
+    const {data: questions, error} = await supabase.from("interview_questions").select("question_text, order, id").eq('interview_id', interviewId).limit(10)
 
     if(error || !questions){
         throw new Error(error.message);
