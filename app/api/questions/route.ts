@@ -8,11 +8,19 @@ export async function POST(req: NextRequest) {
     const supabase = await createClientServer();
 
     try{
+
+
         const {data: analysisData, error} = await supabase.from("analysis_result").select("resume_id, desc_id ,user_id").eq('id', analysisId).single();
 
     if(error || !analysisData){
         throw new Error(error?.message);
     }
+
+    const {data: alreadyExists} = await supabase.from("interview").select("id").eq('resume_id',analysisData.resume_id ).single();
+    if(alreadyExists?.id){
+        return NextResponse.json({interviewId: alreadyExists.id})
+    }
+
 
     const {data:interviewId, error: InterviewIdError} = await supabase.from("interview").insert({
         resume_id: analysisData.resume_id,
@@ -27,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     await generateInterviewQuestionsAndSaveToDb({interviewId: interviewId?.id})
 
-    return NextResponse.json({success: true})
+    return NextResponse.json({success: true, interviewId: interviewId})
 } catch(error){
     console.log(error);
     return NextResponse.json({success: false})

@@ -15,7 +15,9 @@ const InterviewRedirectionBUtton = ({analysisId}: {analysisId: string}) => {
     })
     if(response.ok){
         const data = await response.json();
+        const interviewId = data.interviewI;
         console.log(data)
+        router.push(`/interview/${interviewId}`)
     }
     
     
