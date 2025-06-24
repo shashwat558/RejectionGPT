@@ -1,26 +1,55 @@
 "use client"
 
-import { useState } from "react"
-import { RotateCcw, CheckCircle, XCircle, Eye, Download } from "lucide-react"
+import { useEffect, useState } from "react"
+import { CheckCircle, XCircle, Eye, Download } from "lucide-react"
 import { AnswerType, QuestionType } from "@/app/interview/[id]/InterviewClient"
+import { createClient } from "@/lib/utils/supabase/client"
 
 
 interface InterviewResultsProps {
-  questions: QuestionType[]
-  answers: AnswerType[]
-  startTime: Date | null
-  
-  onReviewQuestion: (questionIndex: number) => void
+  interviewId: string
 }
 
 export default function InterviewResults({
-  questions,
-  answers,
-  startTime,
+ 
   
-  onReviewQuestion,
+  interviewId
+  
 }: InterviewResultsProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
+  const supabase = createClient();
+  const [questions, setQuestions] = useState<QuestionType[] |[] >([]);
+  const [answers, setAnswers] = useState<AnswerType[] | []>([]);
+  const [feedback, setfeedback] = useState("");
+
+  useEffect(() => {
+    const fetchQuestionsAndAnwers = async () => {
+        const [questions, answers] = await Promise.all([
+            supabase.from("interview_questions").select("id, order, question_text").eq('interview_id', interviewId),
+            supabase.from("interview_answers").select("question_id, answer_text, time_spent").eq("interview_id", interviewId),
+            supabase.from("interview_feedback").select("question_id, feedback_text, score")
+        ])
+
+        if(questions.error || answers.error){
+            const error = questions.error ? questions.error : answers.error;
+            throw new Error(error?.message);
+        }
+
+        setQuestions(
+          questions.data.map((q: any) => ({
+            id: q.id,
+            index: q.order,
+            question_text: q.question_text,
+          }))
+        )
+        setAnswers(answers.data.map((a:any) => ({
+            questionId: a.question_id,
+            answerText: a.answer_text,
+            timeSpent: a.time_spent
+        }))
+        )
+    }
+  })
 
   const totalTime = answers.reduce((sum, answer) => sum + answer.timeSpent, 0)
   const answeredQuestions = answers.filter((answer) => answer.answerText.trim().length > 0).length
@@ -38,6 +67,8 @@ export default function InterviewResults({
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
+
+  
 
   return (
     <div className="py-8 space-y-6">

@@ -58,6 +58,38 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
         if(currentQuestionIndex < (questions.length -1)){
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
+            await Promise.all([
+             Promise.all(
+              answers.map((answer) =>
+                supabase.from("interview_answers").insert({
+                  interview_id: interviewId,
+                  question_id: answer.questionId,
+                  answer_text: answer.answerText,
+                  time_spent: answer.timeSpent,
+                })
+              )
+            ),
+             supabase.from("interview").update({
+              "ended_at": new Date()
+             }),
+             fetch("/api/interview/result", {
+              method: "POST",
+              body: JSON.stringify({
+                interviewId,
+                responses: questions.map((q, i) => ({
+                  question_id: q.id,
+                  question_text: q.question_text,
+                  answer: answers[i].answerText
+                }))
+              }),
+              headers: {
+                "Content-Type": "application/json"
+              }
+              
+
+
+             })
+            ])
             setCurrentState("result")
         }
 
@@ -81,9 +113,8 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
         )}
         {currentState === "result" && (
           <InterviewResults
-            questions={questions}
-            answers={answers}
-            startTime={startTime}
+            interviewId={interviewId}
+
             
             
           />
