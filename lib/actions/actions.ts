@@ -377,4 +377,76 @@ export async function getInterviewQuestions(interviewId: string) {
     
 
     return questions
+
+}
+
+interface ResponseType {
+    question_id: string,
+    question_text: string,
+    answer: string
+}
+
+
+export async function evaluateResponsesAndSave(responses: ResponseType[],interviewId: string) {
+    const supabase = await createClientServer();
+
+    const prompt = `
+      You're an AI interview evaluator. For each of the following questions and answers, provide:
+    - feedback_text
+    - score (out of 10)
+    Return a JSON array of objects with: question_id, feedback_text, score.
+
+    ${responses.map((r, i) => 
+    `${i + 1}.
+    question_id: ${r.question_id}
+    question: ${r.question_text}
+    answer: ${r.answer}`
+    ).join("\n\n")};
+
+    `
+
+    const feedbackStructureDeclaration = {
+        name: "Feedback_structure",
+        description: "Structure the feedback",
+        parameters: {
+            type: Type.OBJECT,
+            properties: {
+                feedbacks: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            question_id: {
+                                type: Type.STRING
+                            },
+                            feedback_text: {
+                                type: Type.STRING
+                            },
+                            score: {
+                                type: Type.INTEGER
+                            }
+                        },
+                        required: ["question_id", "feedback_text", "score"]
+                    }
+                }
+            },
+            required: ["feedbacks"]
+        }
+    }
+
+    const response = await genAi.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+           tools: [
+            {
+                functionDeclarations: [feedbackStructureDeclaration]
+            }
+           ]
+        }
+    })
+
+    const result =  response.text;
+    console.log(result)
 }

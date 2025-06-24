@@ -47,53 +47,51 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
     }
     
     const handleAnswerSubmit = async (answer: string, timeSpent: number) => {
-        const newAnswer:AnswerType = {
-            questionId: questions[currentQuestionIndex].id,
-            answerText: answer,
-            timeSpent: timeSpent
+  const newAnswer: AnswerType = {
+    questionId: questions[currentQuestionIndex].id,
+    answerText: answer,
+    timeSpent,
+  };
 
-        }
-        setAnswers((prev) => [...prev, newAnswer]);
+  const allAnswers = [...answers, newAnswer]; // answers + new one
 
-        if(currentQuestionIndex < (questions.length -1)){
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-            await Promise.all([
-             Promise.all(
-              answers.map((answer) =>
-                supabase.from("interview_answers").insert({
-                  interview_id: interviewId,
-                  question_id: answer.questionId,
-                  answer_text: answer.answerText,
-                  time_spent: answer.timeSpent,
-                })
-              )
-            ),
-             supabase.from("interview").update({
-              "ended_at": new Date()
-             }),
-             fetch("/api/interview/result", {
-              method: "POST",
-              body: JSON.stringify({
-                interviewId,
-                responses: questions.map((q, i) => ({
-                  question_id: q.id,
-                  question_text: q.question_text,
-                  answer: answers[i].answerText
-                }))
-              }),
-              headers: {
-                "Content-Type": "application/json"
-              }
-              
+  setAnswers(allAnswers);
 
+  if (currentQuestionIndex < questions.length - 1) {
+    setCurrentQuestionIndex((prev) => prev + 1);
+  } else {
+    await Promise.all([
+      Promise.all(
+        allAnswers.map((answer) =>
+          supabase.from("interview_answers").insert({
+            interview_id: interviewId,
+            question_id: answer.questionId,
+            answer_text: answer.answerText,
+            time_spent: answer.timeSpent,
+          })
+        )
+      ),
+      supabase.from("interview")
+        .update({ ended_at: new Date() })
+        .eq("id", interviewId),
+      fetch("/api/interview/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interviewId,
+          responses: questions.map((q, i) => ({
+            question_id: q.id,
+            question_text: q.question_text,
+            answer: allAnswers[i]?.answerText ?? "",
+          })),
+        }),
+      }),
+    ]);
 
-             })
-            ])
-            setCurrentState("result")
-        }
+    setCurrentState("result");
+  }
+};
 
-    }
 
     
 
