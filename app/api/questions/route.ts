@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     await generateInterviewQuestionsAndSaveToDb({interviewId: interviewId?.id})
 
-    return NextResponse.json({success: true, interviewId: interviewId})
+    return NextResponse.json({success: true, interviewId: interviewId?.id})
 } catch(error){
     console.log(error);
     return NextResponse.json({success: false})

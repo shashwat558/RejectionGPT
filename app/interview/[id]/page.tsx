@@ -13,10 +13,10 @@ const page = async ({params}: {params: Promise<{id: string}>}) => {
     }))
     console.log(questions)
   return (
-    <div className='w-screen h-screen flex justify-center items-center'>
+    
         <InterviewClient interviewId={id} questions={questions}/>
         
-    </div>
+    
   )
 }
 
