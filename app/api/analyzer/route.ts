@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 
 import { createClientServer } from "@/lib/utils/supabase/server";
-import {GoogleGenAI} from '@google/genai';
+import {GoogleGenAI, Type} from '@google/genai';
 
 const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
@@ -54,15 +54,8 @@ You are a smart, supportive, and slightly sarcastic career coach. You’ve revie
 
 Your job is to give helpful, real feedback. Be clear, specific, and honest — even if it stings a little. Add a *touch of sarcasm* here and there to keep it real and fun, but never be rude or mean. Think “friendly mentor with a dry sense of humor.”
 
-Respond in the following **JSON format**:
 
-{ "match_score": "Matching score of resume and job in percentage"
-  "summary": "Short overview of how well the resume matches the job.",
-  "strengths": ["List of things the resume does well."],
-  "missing_skills": ["Skills or tools the job asks for but are missing or vague in the resume."],
-  "weak_points": ["Things that weaken the resume — vague lines, no metrics, outdated buzzwords, etc."],
-  "suggestions": ["Specific things the person should do to improve their resume and match the job better."]
-}
+match_score should be in percentage
 
 You are given two things:
 
@@ -95,15 +88,50 @@ Now compare them and write the JSON response. Be useful, be honest, and let your
             role: "user", parts: [{text: Prompt}]
         }],
         config: {
-            temperature: 0.9
+            temperature: 0.9,
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    match_score: {
+                        type: Type.STRING,
+                    
+                    },
+                    summary: {
+                        type: Type.STRING
+                    },
+                    strengths: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.STRING
+                        }
+                    },
+                    missing_skills: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.STRING
+                        }
+                    },
+                    weak_points: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.STRING
+                        }
+                    },
+                    suggestions: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.STRING
+                        }
+                    }
+                }
+            }
         }
     })
 
     const result = response.text;
-    const match = result?.match(/```json\s*([\s\S]*?)```/);
-    const jsonString = match ? match[1].trim() : result?.trim();
-    const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
-    const mainString = JSON.parse(sanitizedJsonString ?? "");
+    
+    const mainString = JSON.parse(result ?? "");
     console.log(mainString);
     
 

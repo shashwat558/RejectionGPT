@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Copy, RotateCcw, ThumbsUp, ThumbsDown, User, Bot } from "lucide-react"
-
+import Markdown from "react-markdown";
 interface Message {
   id: string
   content: string
@@ -50,7 +50,8 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
             isUser ? "bg-[#333] text-gray-200" : "bg-[#2a2a2a] border border-[#383838] text-gray-300"
           }`}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {message.content}</p>
         </div>
 
         
