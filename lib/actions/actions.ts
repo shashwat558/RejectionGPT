@@ -441,5 +441,10 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
     })
 
     const result =  response.text;
+
+    
+
+
+
     console.log(result)
 }

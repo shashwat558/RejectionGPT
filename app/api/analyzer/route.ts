@@ -56,6 +56,7 @@ Your job is to give helpful, real feedback. Be clear, specific, and honest — e
 
 
 match_score should be in percentage
+strengths should be one liner
 
 You are given two things:
 
