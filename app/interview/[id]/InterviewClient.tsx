@@ -4,6 +4,7 @@ import InterviewResults from '@/components/InterviewResult';
 import InterviewStart from '@/components/InterviewStart';
 import { createClient } from '@/lib/utils/supabase/client';
 import { UUID } from 'crypto';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 
 export interface QuestionType {
@@ -19,20 +20,31 @@ export interface AnswerType {
 }
 
 
-const InterviewClient = ({interviewId, questions}: {interviewId: string, questions: QuestionType[]}) => {
+const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: string, questions: QuestionType[], isCompleted: string}) => {
+
+    
     
     const [currentState, setCurrentState] = useState<"start"| "interview" | "result">("start");
 
     const [currentQuestionIndex , setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<AnswerType[]| []>([]);
     const [startTime, setStartTime] = useState<Date | null>(null);
+    const router = useRouter();
+
+    if(isCompleted === "completed"){
+      router.push(`/interview/result/${interviewId}`)
+    }
     
     const supabase = createClient();
+
+
+    
 
     const handleStart = async () => {
 
         const {data: startTime, error} = await supabase.from("interview").update({
-            started_at: new Date()
+            started_at: new Date(),
+            status: "begin"
         }).eq('id', interviewId).select('started_at').maybeSingle();
         if(error || !startTime){
             throw new Error(error?.message);
@@ -72,7 +84,7 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
         )
       ),
       supabase.from("interview")
-        .update({ ended_at: new Date() })
+        .update({ ended_at: new Date(), status: "completed" })
         .eq("id", interviewId),
       fetch("/api/interview/result", {
         method: "POST",
@@ -89,6 +101,7 @@ const InterviewClient = ({interviewId, questions}: {interviewId: string, questio
     ]);
 
     setCurrentState("result");
+    router.push(`/interview/result/${interviewId}`)
   }
 };
 

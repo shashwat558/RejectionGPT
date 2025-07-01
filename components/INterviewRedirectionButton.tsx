@@ -16,10 +16,12 @@ const InterviewRedirectionBUtton = ({analysisId}: {analysisId: string}) => {
     if(response.ok){
         const data = await response.json();
         const interviewId = data.interviewId;
-        console.log(data)
-        
+        console.log(data.isCompleted)
+         if(data.isCompleted === "completed"){
+          router.push( `/interview/result/${interviewId}`)
+         } else {
          router.push(`/interview/${interviewId}`)
-        
+         }
         
     }
     

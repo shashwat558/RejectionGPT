@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
         throw new Error(error?.message);
     }
 
-    const {data: alreadyExists} = await supabase.from("interview").select("id").eq('resume_id',analysisData.resume_id ).single();
+    const {data: alreadyExists} = await supabase.from("interview").select("id, status").eq('resume_id',analysisData.resume_id ).single();
     if(alreadyExists?.id){
-        return NextResponse.json({interviewId: alreadyExists.id})
+        return NextResponse.json({interviewId: alreadyExists.id, isCompleted: alreadyExists.status})
     }
 
 
