@@ -398,10 +398,14 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
 
     `
 
-    const feedbackStructureDeclaration = {
-        name: "Feedback_structure",
-        description: "Structure the feedback",
-        parameters: {
+    
+
+    const response = await genAi.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
             type: Type.OBJECT,
             properties: {
                 feedbacks: {
@@ -425,26 +429,29 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
             },
             required: ["feedbacks"]
         }
-    }
-
-    const response = await genAi.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-           tools: [
-            {
-                functionDeclarations: [feedbackStructureDeclaration]
-            }
-           ]
         }
     })
 
     const result =  response.text;
 
-    
+
+    let parsedResult: { feedbacks?: any[] } = {};
+    try {
+        parsedResult = JSON.parse(result ?? "{}");
+    } catch (e) {
+        console.error("Failed to parse result as JSON", e);
+    }
+
+   await Promise.all(
+  (parsedResult.feedbacks ?? []).map((feedback) =>
+    supabase.from("interview_feedback").insert({
+      interview_id: interviewId,
+      question_id: feedback.question_id,
+      score: feedback.score,
+      feedback_text: feedback.feedback_text
+    })
+  )
+);
 
 
-
-    console.log(result)
 }

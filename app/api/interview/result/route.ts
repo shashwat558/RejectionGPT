@@ -9,12 +9,14 @@ export async function POST(req: NextRequest){
 
     if(responses.length > 0) {
         try {
-            const response = await evaluateResponsesAndSave(responses, interviewId);
-            console.log(response)
+            await evaluateResponsesAndSave(responses, interviewId);
+            
 
-            return NextResponse.json(response)
+            return NextResponse.json({success: true})
         } catch (error) {
+
             console.log(error)
+            return NextResponse.json({success: false})
             
         }
     }
