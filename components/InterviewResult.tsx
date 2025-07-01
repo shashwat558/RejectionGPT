@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { CheckCircle, XCircle, Eye, Download } from "lucide-react"
+import { CheckCircle, XCircle, Eye, Download, Share } from "lucide-react"
 import { AnswerType, QuestionType } from "@/app/interview/[id]/InterviewClient"
 import { createClient } from "@/lib/utils/supabase/client"
 
@@ -51,6 +51,11 @@ export default function InterviewResults({ interviewId }: InterviewResultsProps)
   a.click()
   URL.revokeObjectURL(url)
 }
+
+ const handleShare = () => {
+  navigator.clipboard.writeText(window.location.href)
+  alert("Link copied to clipboard!")
+ }
 
 
   useEffect(() => {
@@ -262,6 +267,10 @@ export default function InterviewResults({ interviewId }: InterviewResultsProps)
         <button className="flex items-center gap-2 px-6 py-3 bg-[#333] hover:bg-[#444] text-gray-300 rounded-lg transition-colors"  onClick={exportAsCSV}>
           <Download className="w-4 h-4" />
           Export Results
+        </button>
+        <button className="flex items-center gap-2 px-6 py-3 bg-[#333] hover:bg-[#444] text-gray-300 rounded-lg transition-colors"  onClick={handleShare}>
+          <Share className="w-4 h-4" />
+          Share Results
         </button>
       </div>
     </div>

@@ -5,10 +5,21 @@ import { getAllFeedbacks } from "@/lib/actions/actions"
 import AnalyticsOverview from "@/components/analysisOverview"
 import FilterDropdown from "@/components/filterDropdown"
 import AnalysisCard from "@/components/analysisCard"
+import { createClientServer } from "@/lib/utils/supabase/server"
+import { redirect } from "next/navigation"
+
 
 export default async function AnalyzeDashboardPage() {
+
+  const supabase = await createClientServer();
+  const {data} = await supabase.auth.getUser();
+  if(!data.user){
+    redirect(`${process.env.SITE_URL}/login`)
+  }
+  
   
   const feedbackData = await getAllFeedbacks()
+
 
   return (
     <div className="min-h-screen ">
