@@ -1,7 +1,8 @@
 "use client"
 import { QuestionType } from '@/app/interview/[id]/InterviewClient'
-import { ArrowRight, Clock, SkipForward } from 'lucide-react';
+import { ArrowRight, Clock, MicOff, SkipForward } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
+import { useSpeechRecognition } from 'react-speech-recognition';
 
 interface InterviewQuestionProps {
     question: QuestionType,
@@ -21,14 +22,22 @@ const InterviewQuestions = ({
     const [timeLeft, setTimeLeft] = useState(60);
     const [answer, setAnswer] = useState("");
     const [isActive, setIsActive] = useState(false)
+    const [isListening, setIsListening] = useState(false);
     const startTimeRef = useRef<number>(Date.now());
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+    const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+} = useSpeechRecognition();
 
 
     useEffect(() => {
         startTimeRef.current = Date.now();
         setIsActive(true);
-        setTimeLeft(60);
+        setTimeLeft(1200);
         setAnswer("");
         textAreaRef.current?.focus()
 
@@ -128,7 +137,15 @@ const InterviewQuestions = ({
         <h2 className="text-2xl font-semibold text-gray-200 mb-6 leading-relaxed">{question.question_text}</h2>
 
         <div className="space-y-4">
-          <label className="block text-gray-400 text-sm font-medium">Your Answer:</label>
+          <div className='flex gap-5 items-center justify-between w-full'>
+            <label className="block text-gray-400 text-sm font-medium">Your Answer:</label>
+            <div className='p-2 rounded-full border-gray-700 border-[1px]'>
+              <MicOff onClick={() => setIsListening(prev => !prev)} className={`text-white size-7 ${listening && 'animate-ping'}`} />
+
+            </div>
+          
+          </div>
+          
           <textarea
             ref={textAreaRef}
             value={answer}

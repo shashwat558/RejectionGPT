@@ -65,7 +65,7 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
     timeSpent,
   };
 
-  const allAnswers = [...answers, newAnswer]; // answers + new one
+  const allAnswers = [...answers, newAnswer];
 
   setAnswers(allAnswers);
 
