@@ -1,6 +1,6 @@
 "use client"
 import { QuestionType } from '@/app/interview/[id]/InterviewClient'
-import { ArrowRight, Clock, MicOff, SkipForward } from 'lucide-react';
+import { ArrowRight, Clock, Mic, MicOff, SkipForward } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
 import { useSpeechRecognition } from 'react-speech-recognition';
 
@@ -140,7 +140,10 @@ const InterviewQuestions = ({
           <div className='flex gap-5 items-center justify-between w-full'>
             <label className="block text-gray-400 text-sm font-medium">Your Answer:</label>
             <div className='p-2 rounded-full border-gray-700 border-[1px]'>
-              <MicOff onClick={() => setIsListening(prev => !prev)} className={`text-white size-7 ${listening && 'animate-ping'}`} />
+              {isListening ? <MicOff onClick={() => setIsListening(false)} className={`text-white size-7`} />:
+              
+              <Mic onClick={() => setIsListening(true)} className={`text-white size-7 `} />
+            }
 
             </div>
           
