@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+
 import { ChevronLeft, ChevronRight, FileText, Clock, Search, Plus } from "lucide-react"
 
 export interface FeedbackItem {
@@ -21,7 +21,7 @@ interface FeedbackSidebarProps {
 export default function FeedbackSidebar({ feedbacks, currentId }: FeedbackSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const pathname = usePathname()
+  
 
   const filteredFeedbacks = feedbacks.filter(
     (feedback) =>

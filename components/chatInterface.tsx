@@ -21,6 +21,8 @@ interface Message {
 export default function ChatInterface({conversationId}: {conversationId: string}) {
   const {messages, setMessages} = useMessages();
   const [input, setInput] = useState("");
+  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [lastInput, setLastInput] = useState("");
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -253,14 +255,4 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   )
 }
 
-function generateAIResponse(input: string): string {
-  
-  const responses = [
-    "I'd be happy to help you with that! Based on your question about '" +
-      input +
-      "', here are some key points to consider...",
-    "That's a great question! Let me break this down for you and provide some actionable advice...",
-    "I understand you're looking for guidance on '" + input + "'. Here's what I recommend...",
-  ]
-  return responses[Math.floor(Math.random() * responses.length)]
-}
+

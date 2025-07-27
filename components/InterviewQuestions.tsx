@@ -2,7 +2,7 @@
 import { QuestionType } from '@/app/interview/[id]/InterviewClient'
 import { ArrowRight, Clock, Mic, MicOff, SkipForward } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
-import { useSpeechRecognition } from 'react-speech-recognition';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 interface InterviewQuestionProps {
     question: QuestionType,
@@ -22,7 +22,7 @@ const InterviewQuestions = ({
     const [timeLeft, setTimeLeft] = useState(60);
     const [answer, setAnswer] = useState("");
     const [isActive, setIsActive] = useState(false)
-    const [isListening, setIsListening] = useState(false);
+    
     const startTimeRef = useRef<number>(Date.now());
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -30,35 +30,56 @@ const InterviewQuestions = ({
     transcript,
     listening,
     resetTranscript,
-    browserSupportsSpeechRecognition
+    
 } = useSpeechRecognition();
+
+
+const startListening = () => SpeechRecognition.startListening({continuous: true, language: "en-IN"})
+const stopListening = () => {
+  SpeechRecognition.stopListening();
+  resetTranscript()
+}
+
+
+
+
+
 
 
     useEffect(() => {
         startTimeRef.current = Date.now();
         setIsActive(true);
-        setTimeLeft(1200);
+        setTimeLeft(90);
         setAnswer("");
         textAreaRef.current?.focus()
 
     },[question.id])
 
+    useEffect(() => {
+      if(listening){
+        setAnswer(transcript)
+      }
+    },[transcript, listening])
+
     const handleSubmit = () => {
         const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
         setIsActive(false);
         onAnswerSubmit(answer, timeSpent)
+        resetTranscript()
     }
 
     useEffect(() => {
         let Interval:NodeJS.Timeout;
         if(isActive && timeLeft > 0){
             Interval = setInterval(() => {
+                
                 setTimeLeft((prev) => {
                     if(prev <= 1){
                         setIsActive(false);
-                        handleSubmit()
+                        handleSubmit();
+                        return 0;
                     } else {
-                        return prev - 1
+                        return prev - 1;
                     }
                 })
                 
@@ -66,6 +87,7 @@ const InterviewQuestions = ({
         }
         
         return () => clearInterval(Interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[isActive, timeLeft])
 
     const getTimeColor = () => {
@@ -82,7 +104,7 @@ const InterviewQuestions = ({
     }
 
     const getTimePassingWidth = () => {
-        return `${(timeLeft/60) * 100}%`
+        return `${(timeLeft/90) * 100}%`
     } 
 
 
@@ -132,20 +154,25 @@ const InterviewQuestions = ({
 
      
 
-      {/* Question */}
+    
       <div className="bg-[#252525] rounded-xl border border-[#383838] p-8 mb-6 flex-1">
         <h2 className="text-2xl font-semibold text-gray-200 mb-6 leading-relaxed">{question.question_text}</h2>
 
         <div className="space-y-4">
           <div className='flex gap-5 items-center justify-between w-full'>
             <label className="block text-gray-400 text-sm font-medium">Your Answer:</label>
-            <div className='p-2 rounded-full border-gray-700 border-[1px]'>
-              {isListening ? <MicOff onClick={() => setIsListening(false)} className={`text-white size-7`} />:
+            <div className='flex items-center gap-3'>
+              {listening && (<h2 className='text-md text-gray-300'>Listening...</h2>)}
+              <div className='p-2 rounded-full border-gray-700 border-[1px]'>
               
-              <Mic onClick={() => setIsListening(true)} className={`text-white size-7 `} />
+              {listening ? <MicOff onClick={stopListening} className={`text-white size-7`} />:
+              
+              <Mic onClick={startListening} className={`text-white size-7 `} />
             }
 
             </div>
+            </div>
+            
           
           </div>
           

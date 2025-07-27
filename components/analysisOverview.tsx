@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+// import { useState } from "react"
 import { TrendingUp, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 
 interface AnalyticsOverviewProps {
@@ -9,7 +9,7 @@ interface AnalyticsOverviewProps {
 }
 
 export default function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
-  const [timeframe, setTimeframe] = useState("all")
+  // const [timeframe, setTimeframe] = useState("all")
 
   
   const totalAnalyses = data.length

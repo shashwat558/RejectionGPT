@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 import { motion } from 'framer-motion';
 import { Github,  Twitter } from 'lucide-react';
-import { Poppins, Roboto_Mono } from 'next/font/google';
+import { Roboto_Mono } from 'next/font/google';
 import Image from 'next/image';
 import { signInWIthGoogle } from '../actions';
 import { NumberTicker } from '@/components/magicui/number-ticker';

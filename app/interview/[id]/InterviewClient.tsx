@@ -29,6 +29,7 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
     const [currentQuestionIndex , setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<AnswerType[]| []>([]);
     const [startTime, setStartTime] = useState<Date | null>(null);
+    console.log(startTime)
     const router = useRouter();
 
     if(isCompleted === "completed"){

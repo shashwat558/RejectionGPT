@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Copy, RotateCcw, ThumbsUp, ThumbsDown, User, Bot } from "lucide-react"
-import Markdown from "react-markdown";
+
 interface Message {
   id: string
   content: string

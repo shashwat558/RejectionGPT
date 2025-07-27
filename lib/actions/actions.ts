@@ -156,7 +156,7 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
         const embeddingValue = embeddingResponse.embeddings && embeddingResponse.embeddings[0].values;
         console.log(embeddingValue)
 
-        const {data, error} = await supabase.from("job_desc_chunks").insert({
+        const {error} = await supabase.from("job_desc_chunks").insert({
             content: chunk,
             chunk_index: i,
             embedding: embeddingValue,
@@ -435,6 +435,7 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
     const result =  response.text;
 
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parsedResult: { feedbacks?: any[] } = {};
     try {
         parsedResult = JSON.parse(result ?? "{}");

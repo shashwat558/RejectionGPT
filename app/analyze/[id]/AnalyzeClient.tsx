@@ -19,7 +19,10 @@ import { redirect } from "next/navigation"
 
 
 
-export default function AnalysisClient({ analysisId, analysisData, feedbackHistory }: { analysisId:string, analysisData: any, feedbackHistory: any }) {
+
+export default function AnalysisClient({ analysisId, analysisData, 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  feedbackHistory }: { analysisId:string, analysisData: any, feedbackHistory: any }) {
 
     const {user} = useAuth();
     if(!user){

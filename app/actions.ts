@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 "use server"
 
 import { createClientServer } from "@/lib/utils/supabase/server"
 
 import { redirect } from "next/navigation";
 
-
+//@ts-ignore
 const signInWIth = provider => async () => {
     const supabase = await createClientServer();
     const callback_url = `${process.env.SITE_URL}/auth/callback`;

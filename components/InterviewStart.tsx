@@ -51,7 +51,7 @@ export default function InterviewStart({ onStart }: InterviewStartProps) {
             <li>• Be concise and specific in your answers</li>
             <li>• Use the STAR method (Situation, Task, Action, Result) for behavioral questions</li>
             <li>• Practice speaking clearly and confidently</li>
-            <li>• Don't worry if you don't finish - focus on quality over quantity</li>
+            <li>• Don&apos;t worry if you don&apos;t finish - focus on quality over quantity</li>
           </ul>
         </div>
 
