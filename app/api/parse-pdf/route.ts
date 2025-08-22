@@ -25,6 +25,11 @@ export async function POST(req:NextRequest) {
     });
 
     const result = response.text;
-    console.log(result)
-    return NextResponse.json({json:result})
+    const match = result?.match(/```json\s*([\s\S]*?)```/);
+    const jsonString = match ? match[1].trim() : result?.trim();
+    const sanitizedJsonString = jsonString?.replace(/[\x00-\x1F\x7F]/g, ''); // 
+    const mainString = JSON.parse(sanitizedJsonString ?? "");
+    console.log(mainString)
+
+    return NextResponse.json({json: mainString})
 }

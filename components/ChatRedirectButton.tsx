@@ -12,7 +12,7 @@ const ChatRedirectButton = ({descId, resumeId}: {descId: string, resumeId: strin
 
   } 
   return (
-    <button className="absolute top-10 left-[40%] rounded-lg p-3 text-center text-md font-semibold bg-[#302e2e] border-t-2 border-t-[#464444] cursor-pointer text-gray-400 active:border-0 hover:bg-[#363535]" onClick={handleClick}>
+    <button className="absolute top-5 left-[50%] rounded-lg p-3 text-center text-md font-semibold bg-[#302e2e] border-t-2 border-t-[#464444] cursor-pointer text-gray-400 active:border-0 hover:bg-[#363535]" onClick={handleClick}>
              Chat with me! 
     </button>
   )

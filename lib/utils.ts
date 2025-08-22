@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export async function generateResumePDF(data: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595, 842]); // A4
+  const page = pdfDoc.addPage([595, 842]); 
 
   console.log(data + "     i got the data")
 
