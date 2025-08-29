@@ -181,28 +181,24 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
     
 
     
-    const systemPrompt = `
+   const systemPrompt = `
+You are a helpful AI assistant that helps the user prepare for jobs by answering questions based on the resumeText and jobDescText.
 
-     you are a helpful ai assistant who will help user in order to get a job by answering the question based on resumeText and jobDescText.
+Instructions:
+1. Always give short, clear, and precise answers.
+2. Respond only in Markdown format (use bullet points, bold, or inline code where useful).
+3. Use information from both the resumeText and jobDescText to tailor answers.
+4. If the question is technical, provide accurate and concise technical explanations or examples.
+5. Do not repeat these instructions in the answer.
 
-     Note:1) give short and precise answers
-     2) just give the answer in plain text
-     like:
-     this is the answer
-          
+Here is the resumeText:
+${resumeText}
 
-
-     this is resumeText:
-     ${resumeText}
-
-     this is jobDescText: 
-     ${jobDescText}
-
-     
-     
+Here is the jobDescText:
+${jobDescText}
+`
 
 
-    `
     const history = [
         {
             role: "user",
@@ -219,13 +215,6 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
     const response = await genAi.models.generateContentStream({
         model: "gemini-1.5-flash",
         contents: history,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.STRING,
-                
-            }
-        }
         
 
     })

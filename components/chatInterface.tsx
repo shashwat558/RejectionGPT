@@ -172,22 +172,11 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="my-container flex flex-col h-full w-7xl" style={{scrollbarWidth: "thin", scrollbarColor:  "#f1f1f1"}}>
       
       <div className="flex items-center justify-between p-4 border-b border-[#383838] ">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white text-sm font-medium">AI</span>
-          </div>
-          <div>
-            <h1 className="text-gray-200 font-medium">Resume Assistant</h1>
-            <p className="text-gray-500 text-xs">Online • Ready to help</p>
-          </div>
-        </div>
-
-        <button className="p-2 rounded-md bg-[#333] hover:bg-[#444] text-gray-400 hover:text-gray-300 transition-colors">
-          <Plus className="w-4 h-4" />
-        </button>
+        
+      
       </div>
 
       
@@ -205,7 +194,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       <QuickActions onActionClick={handleQuickAction} />
 
       
-      <div className="p-4 border-t border-[#383838] bg-[#252525]">
+      <div className="p-4 border-[#383838]">
         <div className="relative">
           <div className="flex items-end gap-3 bg-[#2a2a2a] border border-[#383838] rounded-xl p-3">
             <button className="p-2 rounded-md hover:bg-[#333] text-gray-400 hover:text-gray-300 transition-colors">

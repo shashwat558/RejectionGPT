@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Roboto_Mono } from "next/font/google";
+import {   Outfit } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import Navbar from "@/components/Navbar";
 
-const Robotomono = Roboto_Mono({
+const Robotomono = Outfit({
     subsets: ["latin"],
-    weight: "300"
+    weight: "400"
 })
 
 export const metadata: Metadata = {

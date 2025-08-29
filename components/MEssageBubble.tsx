@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, RotateCcw, ThumbsUp, ThumbsDown, User, Bot } from "lucide-react"
+import { Copy, RotateCcw, ThumbsUp, ThumbsDown, User, Bot } from "lucide-react";
+import {motion} from "framer-motion";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   id: string
@@ -37,7 +40,7 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
      
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-          isUser ? "bg-[#333] text-gray-300" : "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+          isUser ? "bg-[#333] text-gray-300" : "border-[1px] text-white"
         }`}
       >
         {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -50,17 +53,24 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
             isUser ? "bg-[#333] text-gray-200" : "bg-[#2a2a2a] border border-[#383838] text-gray-300"
           }`}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message.content}</p>
+          <motion.div initial={{opacity:0}} animate={{opacity: 1}} transition={{duration: 0.3}}  className="text-md leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none">
+            <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown></motion.div>
+            
         </div>
 
         
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-gray-500">
-            {message.timestamp.toLocaleString([], { hour: "2-digit", minute: "2-digit" })}
-            hi
-          </span>
-        </div>
+  <span className="text-xs text-gray-500">
+    {new Date(message.timestamp).toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+  </span>
+</div>
+
 
        
         {showActions && !isUser && (
