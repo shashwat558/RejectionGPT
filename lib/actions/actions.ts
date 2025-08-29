@@ -177,26 +177,32 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
     
 }
 
+export const SOURCE_DELIMITER = '###END_OF_TEXT###';
+
 export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeText: string, jobDescText: string, userPrompt: string}) {
+
+    const groundingTool = {
+  googleSearch: {},
+};
     
 
     
    const systemPrompt = `
-You are a helpful AI assistant that helps the user prepare for jobs by answering questions based on the resumeText and jobDescText.
+        You are a helpful AI assistant that helps the user prepare for jobs by answering questions based on the resumeText and jobDescText.
 
-Instructions:
-1. Always give short, clear, and precise answers.
-2. Respond only in Markdown format (use bullet points, bold, or inline code where useful).
-3. Use information from both the resumeText and jobDescText to tailor answers.
-4. If the question is technical, provide accurate and concise technical explanations or examples.
-5. Do not repeat these instructions in the answer.
+        Instructions:
+        1. Always give short, clear, and precise answers.
+        2. Respond only in Markdown format (use bullet points, bold, or inline code where useful).
+        3. Use information from both the resumeText and jobDescText to tailor answers.
+        4. If the question is technical, provide accurate and concise technical explanations or examples.
+        5. Do not repeat these instructions in the answer.
 
-Here is the resumeText:
-${resumeText}
+        Here is the resumeText:
+        ${resumeText}
 
-Here is the jobDescText:
-${jobDescText}
-`
+        Here is the jobDescText:
+        ${jobDescText}
+        `
 
 
     const history = [
@@ -213,8 +219,11 @@ ${jobDescText}
     parts: [{text: userPrompt}]
     })
     const response = await genAi.models.generateContentStream({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: history,
+        config: {
+            tools:[groundingTool]
+        }
         
 
     })
@@ -223,8 +232,9 @@ ${jobDescText}
     const stream = new ReadableStream({
         async start(controller){
             let result = "";
+            const sources = [];
             for await (const chunk of response){
-                const text = chunk.text;
+                if(chunk.text){const text = chunk.text;
                 
                 
                 
@@ -232,21 +242,40 @@ ${jobDescText}
 
                 
                 controller.enqueue(encoder.encode(text));
+            }
+
+            if(chunk.candidates && chunk.candidates[0]?.groundingMetadata?.groundingChunks) {
+                for(const groundingChunk of chunk.candidates[0].groundingMetadata.groundingChunks){
+                    sources.push({
+                        title: groundingChunk.web?.title,
+                        uri: groundingChunk.web?.uri,
+                        domain: groundingChunk.web?.domain
+                    })
+                }
+            }
                 
 
             }
+
+            console.log("sources found", sources)
+
+            
             history.push({
                 role: "assistant",
                 parts: [
                     {text: result}
                 ]
             })
+            controller.enqueue(encoder.encode(SOURCE_DELIMITER))
+            controller.enqueue(encoder.encode(JSON.stringify(sources)))
             controller.close()
             
         }
     })
-   
-    return stream;
+    
+    return stream
+        
+
     
     
     
@@ -445,3 +474,5 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
 
 
 }
+
+

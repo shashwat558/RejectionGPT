@@ -8,6 +8,7 @@ import MessageBubble from "./MEssageBubble"
 import TypingIndicator from "./typingIndicator"
 import QuickActions from "./QuickActionButton"
 import { useMessages } from "@/stores/messageStore"
+import { SOURCE_DELIMITER } from "@/lib/actions/actions"
 
 
 interface Message {
@@ -96,6 +97,10 @@ export default function ChatInterface({conversationId}: {conversationId: string}
     const data = res.body.getReader();
     const decoder = new TextDecoder();
     let result = "";
+    let parsingSources = false;
+    let jsonPart = "";
+    let textPart = "";
+
 
     while (true) {
       const { done, value } = await data.read();
@@ -104,15 +109,21 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       const chunk = decoder.decode(value);
       result += chunk;
 
+      if(parsingSources){
+         jsonPart+= chunk
+      } else {
+        const parts = chunk.split(SOURCE_DELIMITER);
+        if(parts.length>1) {
+          textPart += parts[0];
+          jsonPart+= parts[1];
+          parsingSources = true
+        }
+      }
 
 
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === assistantMessage.id
-            ? { ...msg, content: result }
-            : msg
-        )
-      );
+
+
+     
     }
 
     // conversationHistory.push({role: "user", parts:[{text:input}]});
