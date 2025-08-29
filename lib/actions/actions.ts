@@ -177,7 +177,7 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
     
 }
 
-export const SOURCE_DELIMITER = '###END_OF_TEXT###';
+const SOURCE_DELIMITER = '###END_OF_TEXT###';
 
 export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeText: string, jobDescText: string, userPrompt: string}) {
 

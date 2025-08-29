@@ -3,12 +3,13 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Plus, Paperclip, Mic } from "lucide-react"
+import { Send, Paperclip, Mic } from "lucide-react"
 import MessageBubble from "./MEssageBubble"
 import TypingIndicator from "./typingIndicator"
 import QuickActions from "./QuickActionButton"
 import { useMessages } from "@/stores/messageStore"
-import { SOURCE_DELIMITER } from "@/lib/actions/actions"
+
+const SOURCE_DELIMITER = '###END_OF_TEXT###'
 
 
 interface Message {
@@ -96,7 +97,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   if (res.ok && res.body) {
     const data = res.body.getReader();
     const decoder = new TextDecoder();
-    let result = "";
+    
     let parsingSources = false;
     let jsonPart = "";
     let textPart = "";
@@ -107,7 +108,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       if (done) break;
 
       const chunk = decoder.decode(value);
-      result += chunk;
+      
 
       if(parsingSources){
          jsonPart+= chunk
@@ -117,6 +118,22 @@ export default function ChatInterface({conversationId}: {conversationId: string}
           textPart += parts[0];
           jsonPart+= parts[1];
           parsingSources = true
+
+           setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === assistantMessage.id
+            ? { ...msg, content: textPart }
+            : msg
+        )
+      );
+        } else {
+          textPart += chunk
+          setMessages((prevMessages) => 
+            prevMessages.map((msg) => 
+              msg.id === assistantMessage.id ? {...msg, content: textPart}: msg
+              
+            )
+          )
         }
       }
 
@@ -129,9 +146,23 @@ export default function ChatInterface({conversationId}: {conversationId: string}
     // conversationHistory.push({role: "user", parts:[{text:input}]});
     // conversationHistory.push({role: "assistant", parts:[{text: result}]});
 
+
     // console.log(conversationHistory)
 
-   
+    try{
+      const sources = JSON.parse(jsonPart);
+      console.log(sources);
+      setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.id === assistantMessage.id
+          ? { ...msg, content: textPart, sources: sources, isTyping: false }
+          : { ...msg, isTyping: false }
+      )
+    );
+
+     } catch (error) {
+    console.error("Failed to parse sources JSON:", error);
+    
     setMessages((prevMessages) =>
       prevMessages.map((msg) =>
         msg.id === assistantMessage.id
@@ -139,6 +170,9 @@ export default function ChatInterface({conversationId}: {conversationId: string}
           : msg
       )
     );
+  }
+
+   
   } else {
     const text = await res.text();
     console.error("Error response:", text);
