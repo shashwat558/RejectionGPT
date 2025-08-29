@@ -5,6 +5,8 @@ import { Copy, RotateCcw, ThumbsUp, ThumbsDown, User, Bot } from "lucide-react";
 import {motion} from "framer-motion";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
+import {vscDarkPlus} from "react-syntax-highlighter/dist/esm/styles/prism"
 
 interface Message {
   id: string
@@ -54,22 +56,45 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
           }`}
         >
           <motion.div initial={{opacity:0}} animate={{opacity: 1}} transition={{duration: 0.3}}  className="text-md leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none">
-            <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown></motion.div>
+            <Markdown 
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code(props) {
+                const {children, className, node, ...rest} = props;
+                const match = /language-(\w+)/.exec(className || "");
+                return match ? (
+                  <SyntaxHighlighter 
+                  {...rest}
+                  preTag="div"
+                  // eslint-disable-next-line react/no-children-prop
+                  children={String(children)}
+                  language = {match[1]}
+                  style= {vscDarkPlus}
+                  >
+                  </SyntaxHighlighter>
+                ) : (
+                  <code {...rest} className={className}>
+                    {children}
+                  </code>
+                )
+              }
+            }}
+            >{message.content}</Markdown></motion.div>
             
         </div>
 
         
         <div className="flex items-center gap-2 mt-1">
-  <span className="text-xs text-gray-500">
-    {new Date(message.timestamp).toLocaleString([], {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    })}
-  </span>
-</div>
+        <span className="text-xs text-gray-500">
+          {new Date(message.timestamp).toLocaleString([], {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      </div>
 
 
        
