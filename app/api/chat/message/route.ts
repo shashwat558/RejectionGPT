@@ -4,8 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { prompt, conversationId } = await req.json();
-  console.log("Received:", { prompt, conversationId });
+  const { prompt, conversationId, conversationHistory } = await req.json();
+  console.log("Received:", { prompt, conversationId, conversationHistory });
 
   if (!prompt) {
     return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
@@ -86,7 +86,7 @@ console.log(resume_id, job_desc_id);
       finalJobDescChunks = fallbackJobChunks
     }
 
-    const answer = await aiAnswer({jobDescText: finalJobDescChunks, resumeText: finalResumeChunks, userPrompt: prompt });
+    const answer = await aiAnswer({jobDescText: finalJobDescChunks, resumeText: finalResumeChunks, userPrompt: prompt, conversationHistory: conversationHistory });
     
 
 

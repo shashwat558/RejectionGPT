@@ -179,7 +179,7 @@ export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: s
 
 const SOURCE_DELIMITER = '###END_OF_TEXT###';
 
-export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeText: string, jobDescText: string, userPrompt: string}) {
+export async function aiAnswer ({resumeText, jobDescText, userPrompt, conversationHistory}: {resumeText: string, jobDescText: string, userPrompt: string, conversationHistory: Array<{role: string, parts:[{text: string}]}>}) {
 
     const groundingTool = {
   googleSearch: {},
@@ -206,18 +206,10 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt}: {resumeTe
 
 
     const history = [
-        {
-            role: "user",
-            parts: [
-                {text: systemPrompt}
-            ]
-
-        }
-    ]
-    history.push({
-    role: "user",
-    parts: [{text: userPrompt}]
-    })
+    { role: "user", parts: [{ text: systemPrompt }] },
+    ...conversationHistory,
+    { role: "user", parts: [{ text: userPrompt }] },
+  ]
     const response = await genAi.models.generateContentStream({
         model: "gemini-2.5-flash",
         contents: history,

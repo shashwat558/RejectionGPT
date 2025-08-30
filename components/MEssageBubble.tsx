@@ -75,6 +75,7 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
                     <SyntaxHighlighter
                       {...rest}
                       PreTag="div"
+                      // eslint-disable-next-line react/no-children-prop
                       children={String(children)}
                       language={match[1]}
                       style={vscDarkPlus}
@@ -85,6 +86,24 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
                     </code>
                   )
                 },
+
+                a(props) {
+                  const {children, href, ...rest} = props
+                  const match = /https:-(\w)/.exec(href || "")
+                  return match ? (
+                    <SyntaxHighlighter {...rest}
+                    PreTag="div"
+                    // eslint-disable-next-line react/no-children-prop
+                    children={String(children)}
+                    style={vscDarkPlus}
+                    
+                    />
+                  ) : (
+                    <a className="text-blue-400" href={href}>
+                      {children}
+                    </a>
+                  )
+                }
               }}
             >
               {message.content}

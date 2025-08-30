@@ -29,13 +29,15 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  // let conversationHistory: Array<{role: string, parts: [{text:string}]}> = [];
+  
 
    
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
+
+  
 
  
 
@@ -68,6 +70,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   };
 
   setMessages((prev) => [...prev, userMessage]);
+
   setInput("");
   setIsLoading(true);
 
@@ -81,6 +84,11 @@ export default function ChatInterface({conversationId}: {conversationId: string}
 
   setMessages((prev) => [...prev, assistantMessage]);
 
+  const historyForApi = [...messages, userMessage].map((m) => ({
+      role: m.role === "assistant" ? "model": "user" ,
+      parts: [{ text: m.content }],
+    }))
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const res = await fetch(`${siteUrl}/api/chat/message`, {
     method: "POST",
@@ -90,7 +98,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
     body: JSON.stringify({
       conversationId: conversationId,
       prompt: input,
-      // conversationHistory: conversationHistory
+      conversationHistory: historyForApi
     })
   });
 
@@ -143,11 +151,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
      
     }
 
-    // conversationHistory.push({role: "user", parts:[{text:input}]});
-    // conversationHistory.push({role: "assistant", parts:[{text: result}]});
-
-
-    // console.log(conversationHistory)
+    
 
     try{
       const sources = JSON.parse(jsonPart);
