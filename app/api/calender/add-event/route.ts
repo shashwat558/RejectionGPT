@@ -12,5 +12,50 @@ export async function POST(req: NextRequest) {
 
     if(!tokens){
         return NextResponse.json({error: "No tokens found"}, {status: 400})
+    };
+
+    let {access_token, refresh_token, expiry_date} = tokens;
+
+    if(new Date(expiry_date) < new Date()){
+        const refreshRes = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: {
+                "Content-type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                client_id: process.env.GOOGLE_CALENDER_CLIENT_ID ?? "",
+                client_secret: process.env.GOOGLE_CALENDER_CLIENT_SECRET ?? "",
+                refresh_token,
+                grant_type:"refresh_token"
+            })
+        });
+
+        const newToken = await refreshRes.json();
+        access_token = newToken.access_token;
+        expiry_date = new Date(Date.now() + newToken.expires_at * 1000).toISOString();
+        await supabase.from("user_integrations").update({
+            access_token: access_token,
+            expiry_date: expiry_date
+        }).eq("user_id", user?.id);
+
     }
+
+    const event = {
+        summary,
+        start: {dateTime: start},
+        end: {dateTime: end}
+    }
+
+    const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${access_token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(event)
+    }) 
+    
+    const data = await res.json();
+    console.log(data)
+    return NextResponse.json({success: true},{status: 200})
 }

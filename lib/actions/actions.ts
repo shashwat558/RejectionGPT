@@ -230,9 +230,7 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt, conversati
         model: "gemini-2.5-flash",
         contents: history,
         config: {
-            tools: [groundingTool, {
-                functionDeclarations: [addEventTool]
-            }]
+            tools: [groundingTool]
         }
         
 
@@ -255,33 +253,33 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt, conversati
                 controller.enqueue(encoder.encode(text));
             }
 
-            if (
-                chunk.candidates &&
-                chunk.candidates[0]?.content &&
-                Array.isArray(chunk.candidates[0].content.parts) &&
-                chunk.candidates[0].content.parts[0] &&
-                chunk.candidates[0].content.parts[0].functionCall
-            ) {
-                const functionCall = chunk.candidates[0].content.parts[0].functionCall;
-                if(functionCall?.name==="addEvent"){
-                    const eventData = functionCall.args;
+            // if (
+            //     chunk.candidates &&
+            //     chunk.candidates[0]?.content &&
+            //     Array.isArray(chunk.candidates[0].content.parts) &&
+            //     chunk.candidates[0].content.parts[0] &&
+            //     chunk.candidates[0].content.parts[0].functionCall
+            // ) {
+            //     const functionCall = chunk.candidates[0].content.parts[0].functionCall;
+            //     if(functionCall?.name==="addEvent"){
+            //         const eventData = functionCall.args;
 
-                   try{ const apiRes = await fetch("http://localhost:3000/api/calender/add-event", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(eventData)
-                    })
-                    const resultJSON = await apiRes.json();
-                    const confirmationMsg = resultJSON.success ? `✅ Event created succesfully: **${eventData}**`: "❌ failed to create the event"
+            //        try{ const apiRes = await fetch("http://localhost:3000/api/calender/add-event", {
+            //             method: "POST",
+            //             headers: {
+            //                 "Content-Type": "application/json"
+            //             },
+            //             body: JSON.stringify(eventData)
+            //         })
+            //         const resultJSON = await apiRes.json();
+            //         const confirmationMsg = resultJSON.success ? `✅ Event created succesfully: **${eventData}**`: "❌ failed to create the event"
 
-                    controller.enqueue(encoder.encode(confirmationMsg))
-                } catch(error) {
-                    controller.enqueue(encoder.encode(`Error creating event ${error}` ))
-                }
-                }
-            }
+            //         controller.enqueue(encoder.encode(confirmationMsg))
+            //     } catch(error) {
+            //         controller.enqueue(encoder.encode(`Error creating event ${error}` ))
+            //     }
+            //     }
+            // }
 
             if(chunk.candidates && chunk.candidates[0]?.groundingMetadata?.groundingChunks) {
                 for(const groundingChunk of chunk.candidates[0].groundingMetadata.groundingChunks){
