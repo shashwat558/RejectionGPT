@@ -8,6 +8,8 @@ import MessageBubble from "./MEssageBubble"
 import TypingIndicator from "./typingIndicator"
 import QuickActions from "./QuickActionButton"
 import { useMessages } from "@/stores/messageStore"
+import { Button } from "./ui/button"
+import { redirect } from "next/navigation"
 
 const SOURCE_DELIMITER = '###END_OF_TEXT###'
 
@@ -239,8 +241,14 @@ export default function ChatInterface({conversationId}: {conversationId: string}
         <div ref={messagesEndRef} />
       </div>
 
-      
+      <div className="flex">
       <QuickActions onActionClick={handleQuickAction} />
+      <Button variant={"outline"} onClick={() => {
+        redirect("/api/calender/connect")
+      }} className="bg-blue-500 cursor-pointer">
+        Connect Google calender
+      </Button>
+      </div>
 
       
       <div className="p-4 border-[#383838]">

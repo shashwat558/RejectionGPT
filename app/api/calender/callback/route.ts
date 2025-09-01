@@ -11,6 +11,7 @@ export async function GET(req:NextRequest) {
     }
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
@@ -40,7 +41,7 @@ export async function GET(req:NextRequest) {
        })
     }
 
-    return NextResponse.redirect("analyze?calender=connected")
+    return NextResponse.redirect("http://localhost:3000/analyze?calender=connected")
 
 
 }
