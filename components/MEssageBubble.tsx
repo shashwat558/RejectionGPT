@@ -56,7 +56,7 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
           className={`rounded-xl px-4 py-3 ${
             isUser
               ? "bg-[#333] text-gray-200"
-              : "bg-[#2a2a2a] border border-[#383838] text-gray-300"
+              : " text-gray-300"
           }`}
         >
           <motion.div
