@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 
-export async function GET(req:NextRequest) {
+export async function GET() {
     const clientId = process.env.GOOGLE_CALENDER_CLIENT_ID;
     const appUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const redirectUri = `${appUrl}/api/calender/callback`;

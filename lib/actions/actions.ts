@@ -185,21 +185,21 @@ export async function aiAnswer ({resumeText, jobDescText, userPrompt, conversati
   googleSearch: {},
 };
 
-   const addEventTool = {
-    name: "addEvent",
-    description: "Create a Google calender event",
-    parameters: {
-        type: Type.OBJECT,
-        properties: {
-            summary: {type: Type.STRING, description: "Title of the event..."},
-            description: {type: Type.STRING, description: "Details of the event"},
-            start: {type: Type.STRING, description: "Start time in RFC3339 format" },
-            end: {type: Type.STRING, description: "end time in RFC3339 format"}
+//    const addEventTool = {
+//     name: "addEvent",
+//     description: "Create a Google calender event",
+//     parameters: {
+//         type: Type.OBJECT,
+//         properties: {
+//             summary: {type: Type.STRING, description: "Title of the event..."},
+//             description: {type: Type.STRING, description: "Details of the event"},
+//             start: {type: Type.STRING, description: "Start time in RFC3339 format" },
+//             end: {type: Type.STRING, description: "end time in RFC3339 format"}
 
-        },
-        required: ["summary", "start", "end"]
-    }
-   }
+//         },
+//         required: ["summary", "start", "end"]
+//     }
+//    }
     
 
     
@@ -442,11 +442,10 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
       You're an AI interview evaluator. For each of the following questions and answers, provide:
     - feedback_text
     - score (out of 10)
-    Return a JSON array of objects with: question_id, feedback_text, score.
+    Return a JSON array of objects with: feedback_text, score (in the same order as the questions).
 
     ${responses.map((r, i) => 
     `${i + 1}.
-    question_id: ${r.question_id}
     question: ${r.question_text}
     answer: ${r.answer}`
     ).join("\n\n")};
@@ -468,9 +467,6 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
                     items: {
                         type: Type.OBJECT,
                         properties: {
-                            question_id: {
-                                type: Type.STRING
-                            },
                             feedback_text: {
                                 type: Type.STRING
                             },
@@ -478,7 +474,7 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
                                 type: Type.INTEGER
                             }
                         },
-                        required: ["question_id", "feedback_text", "score"]
+                        required: ["feedback_text", "score"]
                     }
                 }
             },
@@ -499,10 +495,10 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
     }
 
    await Promise.all(
-  (parsedResult.feedbacks ?? []).map((feedback) =>
+  (parsedResult.feedbacks ?? []).map((feedback, index) =>
     supabase.from("interview_feedback").insert({
       interview_id: interviewId,
-      question_id: feedback.question_id,
+      question_id: responses[index].question_id,
       score: feedback.score,
       feedback_text: feedback.feedback_text
     })
@@ -513,3 +509,31 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
 }
 
 
+export async function checkCalendarConnection() {
+    const supabase = await createClientServer();
+    const {data: user} = await supabase.auth.getUser();
+    
+    if (!user?.user?.id) {
+        return false;
+    }
+    
+    const {data: calendarData, error} = await supabase
+        .from("user_integrations")
+        .select("access_token, expiry_date")
+        .eq("user_id", user.user.id)
+        .eq("provider", "google_calender")
+        .maybeSingle();
+    
+    if (error) {
+        console.error('Error checking calendar connection:', error);
+        return false;
+    }
+    
+    // Check if token exists and is not expired
+    if (calendarData && calendarData.access_token) {
+        const isExpired = calendarData.expiry_date && new Date(calendarData.expiry_date) < new Date();
+        return !isExpired;
+    }
+    
+    return false;
+}

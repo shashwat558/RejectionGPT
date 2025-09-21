@@ -39,7 +39,7 @@ export default function FeedbackSidebar({ feedbacks, currentId }: FeedbackSideba
 };
   return (
     <div
-      className={`h-screen flex flex-col border-r border-[#383838] bg-[#1e1e1e] transition-all duration-300 ${
+      className={`h-screen flex flex-col  border-r-[2px] border-t-[2px] border-dashed border-[#7c7b7b] bg-[#1e1e1e] transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
     >

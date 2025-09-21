@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { createClientServer } from "@/lib/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,8 +14,10 @@ export async function POST(req: NextRequest) {
     if(!tokens){
         return NextResponse.json({error: "No tokens found"}, {status: 400})
     };
-
-    let {access_token, refresh_token, expiry_date} = tokens;
+    //@ts-ignore
+    let {access_token, expiry_date} = tokens;
+    //@ts-ignore
+    const {refresh_token} = tokens;
 
     if(new Date(expiry_date) < new Date()){
         const refreshRes = await fetch("https://oauth2.googleapis.com/token", {

@@ -3,13 +3,17 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Paperclip, Mic } from "lucide-react"
+import { Send, Paperclip, Mic, ArrowLeft, Check } from "lucide-react"
 import MessageBubble from "./MEssageBubble"
 import TypingIndicator from "./typingIndicator"
 import QuickActions from "./QuickActionButton"
 import { useMessages } from "@/stores/messageStore"
 import { Button } from "./ui/button"
 import { redirect } from "next/navigation"
+import Link from "next/link"
+
+import { useAuth } from "@/stores/useAuth"
+import { checkCalendarConnection } from "@/lib/actions/actions"
 
 const SOURCE_DELIMITER = '###END_OF_TEXT###'
 
@@ -31,6 +35,8 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isCalendarConnected, setIsCalendarConnected] = useState(false);
+  const {user} = useAuth();
   
 
    
@@ -41,7 +47,19 @@ export default function ChatInterface({conversationId}: {conversationId: string}
 
   
 
- 
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        if (user) {
+          const isConnected = await checkCalendarConnection();
+          setIsCalendarConnected(isConnected);
+        }
+      } catch (error) {
+        console.error('Error checking calendar connection:', error);
+      }
+    };
+    checkConnection();
+  }, [user])
 
 
   useEffect(() => {
@@ -86,10 +104,14 @@ export default function ChatInterface({conversationId}: {conversationId: string}
 
   setMessages((prev) => [...prev, assistantMessage]);
 
+  const MAX_CONTENT= 5;
+
   const historyForApi = [...messages, userMessage].map((m) => ({
       role: m.role === "assistant" ? "model": "user" ,
       parts: [{ text: m.content }],
     }))
+
+  const recentHistory = historyForApi.slice(-MAX_CONTENT);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const res = await fetch(`${siteUrl}/api/chat/message`, {
@@ -100,7 +122,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
     body: JSON.stringify({
       conversationId: conversationId,
       prompt: input,
-      conversationHistory: historyForApi
+      conversationHistory: recentHistory
     })
   });
 
@@ -225,9 +247,32 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   return (
     <div className="my-container flex flex-col h-full w-7xl" style={{scrollbarWidth: "thin", scrollbarColor:  "#f1f1f1"}}>
       
-      <div className="flex items-center justify-between p-4 border-b border-[#383838] ">
+      <div className="flex items-center justify-between p-4 border-b border-[#383838]">
+        <Link 
+          href="/analyze" 
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-300 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Analysis
+        </Link>
         
-      
+        {isCalendarConnected? <Button 
+          variant="outline" 
+          onClick={() => {
+            redirect("/api/calender/connect")
+          }} 
+          className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600 transition-colors"
+        >
+          Connect Google Calendar
+        </Button>: <Button 
+          variant="outline" 
+          onClick={() => {
+            redirect("/api/calender/connect")
+          }} 
+          className=" bg-transparent border-dashed text-white border-blue-500"
+        >
+          Calendar Connected <Check className="w-4 h-4" />
+        </Button>}
       </div>
 
       
@@ -241,13 +286,9 @@ export default function ChatInterface({conversationId}: {conversationId: string}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex">
-      <QuickActions onActionClick={handleQuickAction} />
-      <Button variant={"outline"} onClick={() => {
-        redirect("/api/calender/connect")
-      }} className="bg-blue-500 cursor-pointer">
-        Connect Google calender
-      </Button>
+      {/* Quick Actions */}
+      <div className="p-4 border-b border-[#383838]">
+        <QuickActions onActionClick={handleQuickAction} />
       </div>
 
       

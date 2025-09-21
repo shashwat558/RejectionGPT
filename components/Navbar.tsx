@@ -49,8 +49,18 @@ const Navbar = () => {
         transition={{ duration: 0.5, ease: "easeInOut" }}
         className={`w-full  z-50 flex justify-center items-center absolute`}
         style={{ position: "sticky" }}>
+        {/* Decorative corner elements for the navbar */}
+        
+       
             
-        <div className='xl:w-2/3 md:p-3 max-sm:p-4  w-full bg-transparent pt-5'>
+        <div className='xl:w-2/3 md:p-3 max-sm:p-4  w-full bg-transparent pt-5 border-[2px] border-t-0 border-dashed border-gray-500 relative'>
+        
+
+      
+    
+
+
+           
           <div className='flex justify-between items-center bg-transparent'>
             <div className='flex items-center gap-5 '>
                 

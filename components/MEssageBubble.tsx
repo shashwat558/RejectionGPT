@@ -69,11 +69,10 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
               remarkPlugins={[remarkGfm]}
               components={{
                 code(props) {
-                  const { children, className, ...rest } = props
+                  const { children, className } = props
                   const match = /language-(\w+)/.exec(className || "")
                   return match ? (
                     <SyntaxHighlighter
-                      {...rest}
                       PreTag="div"
                       // eslint-disable-next-line react/no-children-prop
                       children={String(children)}
@@ -81,22 +80,21 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
                       style={vscDarkPlus}
                     />
                   ) : (
-                    <code {...rest} className={className}>
+                    <code className={className}>
                       {children}
                     </code>
                   )
                 },
 
                 a(props) {
-                  const {children, href, ...rest} = props
+                  const { children, href } = props
                   const match = /https:-(\w)/.exec(href || "")
                   return match ? (
-                    <SyntaxHighlighter {...rest}
-                    PreTag="div"
-                    // eslint-disable-next-line react/no-children-prop
-                    children={String(children)}
-                    style={vscDarkPlus}
-                    
+                    <SyntaxHighlighter
+                      PreTag="div"
+                      // eslint-disable-next-line react/no-children-prop
+                      children={String(children)}
+                      style={vscDarkPlus}
                     />
                   ) : (
                     <a className="text-blue-400" href={href}>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import {   Outfit } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
-import Navbar from "@/components/Navbar";
+import ConditionalNavbar from "@/components/ConditionalNavbar";
 
 const Robotomono = Outfit({
     subsets: ["latin"],
@@ -26,7 +26,7 @@ export default function RootLayout({
         className={`${Robotomono.className} antialiased bg-[#111111]`}
       >
         <AuthProvider />
-        <Navbar />
+        <ConditionalNavbar />
         {children}
       </body>
     </html>
