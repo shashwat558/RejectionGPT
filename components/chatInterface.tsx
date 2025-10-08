@@ -229,14 +229,123 @@ export default function ChatInterface({conversationId}: {conversationId: string}
   }
 
   const regenerateResponse = async (messageId: string) => {
-    const lastUserMessage = [...messages].reverse().find(message => message.role === "user");
-    const lastInput = lastUserMessage?.content;
-    console.log(lastInput);
-    setInput(lastInput ?? "");
-    setLastInput(lastInput ?? "");
-   
+    // Find the assistant message to regenerate
+    const assistantMessageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (assistantMessageIndex === -1) return;
 
-    console.log("Regenerating response for message:", messageId)
+    // Find the user message that prompted this response
+    const userMessage = messages[assistantMessageIndex - 1];
+    if (!userMessage || userMessage.role !== "user") return;
+
+    // Remove the assistant message and all messages after it
+    setMessages(prev => prev.slice(0, assistantMessageIndex));
+
+    // Set the input to the user's original message
+    setInput(userMessage.content);
+    setLastInput(userMessage.content);
+
+    // Trigger a new response
+    setIsLoading(true);
+
+    const newAssistantMessage: Message = {
+      id: "ai-" + Date.now().toString(),
+      content: "",
+      role: "assistant",
+      timestamp: new Date(),
+      isTyping: true,
+    };
+
+    setMessages((prev) => [...prev, newAssistantMessage]);
+
+    const MAX_CONTENT = 5;
+    const historyForApi = [...messages.slice(0, assistantMessageIndex), userMessage].map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    const recentHistory = historyForApi.slice(-MAX_CONTENT);
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const res = await fetch(`${siteUrl}/api/chat/message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        conversationId: conversationId,
+        prompt: userMessage.content,
+        conversationHistory: recentHistory
+      })
+    });
+
+    if (res.ok && res.body) {
+      const data = res.body.getReader();
+      const decoder = new TextDecoder();
+      
+      let parsingSources = false;
+      let jsonPart = "";
+      let textPart = "";
+
+      while (true) {
+        const { done, value } = await data.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+
+        if (parsingSources) {
+          jsonPart += chunk;
+        } else {
+          const parts = chunk.split(SOURCE_DELIMITER);
+          if (parts.length > 1) {
+            textPart += parts[0];
+            jsonPart += parts[1];
+            parsingSources = true;
+
+            setMessages((prevMessages) =>
+              prevMessages.map((msg) =>
+                msg.id === newAssistantMessage.id
+                  ? { ...msg, content: textPart }
+                  : msg
+              )
+            );
+          } else {
+            textPart += chunk;
+            setMessages((prevMessages) => 
+              prevMessages.map((msg) => 
+                msg.id === newAssistantMessage.id ? {...msg, content: textPart}: msg
+              )
+            );
+          }
+        }
+      }
+
+      try {
+        const sources = JSON.parse(jsonPart);
+        console.log(sources);
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.id === newAssistantMessage.id
+              ? { ...msg, content: textPart, sources: sources, isTyping: false }
+              : { ...msg, isTyping: false }
+          )
+        );
+      } catch (error) {
+        console.error("Failed to parse sources JSON:", error);
+        
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.id === newAssistantMessage.id
+              ? { ...msg, isTyping: false }
+              : msg
+          )
+        );
+      }
+    } else {
+      const text = await res.text();
+      console.error("Error response:", text);
+    }
+
+    setIsLoading(false);
   }
 
   const copyMessage = (content: string) => {
@@ -264,15 +373,15 @@ export default function ChatInterface({conversationId}: {conversationId: string}
           className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:border-blue-600 transition-colors"
         >
           Connect Google Calendar
-        </Button>: <Button 
-          variant="outline" 
+        </Button>: <button 
+           
           onClick={() => {
             redirect("/api/calender/connect")
           }} 
-          className=" bg-transparent border-dashed text-white border-blue-500"
+          className="flex items-center gap-2 border-[1px] pt-[2px] pb-[2px] pl-[8px] pr-[8px] rounded-md text-md   bg-transparent border-dashed text-white border-blue-400"
         >
           Calendar Connected <Check className="w-4 h-4" />
-        </Button>}
+        </button>}
       </div>
 
       
