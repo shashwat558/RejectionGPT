@@ -1,6 +1,8 @@
 
 import { getAllFeedbacks, getFeedback } from "@/lib/actions/actions";
 import AnalysisClient from "./AnalyzeClient"
+import { createClientServer } from "@/lib/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 
 
@@ -10,16 +12,14 @@ import AnalysisClient from "./AnalyzeClient"
 
 export default async function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  const supabase = await createClientServer();
+  const user = await supabase.auth.getUser();
+  if(!user){
+    redirect("/login")
+  }
   
   const analysisData = await getFeedback({ analysisId: id })
-
-  
-
-
-
-
-
-
   
   const feedbackHistory = await getAllFeedbacks();
 

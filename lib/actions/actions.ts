@@ -366,7 +366,7 @@ export async function generateInterviewQuestionsAndSaveToDb({interviewId}: {inte
           
     `
             const response = await genAi.models.generateContent({
-                model: "gemini-1.5-flash",
+                model: "gemini-2.0-flash",
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
@@ -455,7 +455,7 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
     
 
     const response = await genAi.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         contents: prompt,
         config: {
             responseMimeType: "application/json",

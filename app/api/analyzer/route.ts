@@ -26,7 +26,7 @@ async function descTailor({jobDesc}: {jobDesc: string}) {
     `;
 
     const response = await genAI.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         contents: [
             {role: "user", parts: [{text: Prompt}]}
         ],
@@ -84,7 +84,7 @@ async function aifeedback({resumeText, jobDescription}: {resumeText: string, job
     `
 
     const response = await genAI.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         contents: [{
             role: "user", parts: [{text: Prompt}]
         }],
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
         const resumeId = resumeRes.data?.id;
         const jdId = jdRes.data?.id;
       
-
+    
 
 
     const {data: analysisData, error:analysicError} = await supabase.from("analysis_result").insert({

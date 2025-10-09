@@ -8,6 +8,8 @@ import { Roboto_Mono } from 'next/font/google';
 import Image from 'next/image';
 import { signInWIthGoogle } from '../actions';
 import { NumberTicker } from '@/components/magicui/number-ticker';
+import { useAuth } from '@/stores/useAuth';
+import { redirect } from 'next/navigation';
 
 
 
@@ -17,6 +19,10 @@ const play = Roboto_Mono({
 })
 
 export default function LoginPage() {
+  const user = useAuth();
+  if(user){
+    redirect('/')
+  }
   return (
     <div className={`${play.className} min-h-screen flex items-center justify-center p-3`}>
       <div className='fixed top-[20%] left-[4%] w-20 h-10 bg-[#232323] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-r-2 border-[#292929] rounded-md p-5 flex gap-1 -z-10'>

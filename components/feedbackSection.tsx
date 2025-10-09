@@ -21,7 +21,7 @@ export default function FeedbackSection({ title, items, icon, color }: FeedbackS
         <div className="flex items-center gap-2">
           <div className={`${color} rounded-full p-1`}>{icon}</div>
           <h3 className="text-gray-300 font-semibold">{title}</h3>
-          <div className="text-gray-500 text-sm ml-2">({items.length})</div>
+          <div className="text-gray-500 text-sm ml-2">({items.length?? 0})</div>
         </div>
         <button className="text-gray-400 hover:text-gray-300">
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}

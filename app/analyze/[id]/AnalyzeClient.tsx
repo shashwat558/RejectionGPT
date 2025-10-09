@@ -7,11 +7,10 @@ import FeedbackSidebar from "@/components/feedbackSidebar"
 import InterviewRedirectionBUtton from "@/components/INterviewRedirectionButton"
 import MatchScoreBadge from "@/components/MatchScore"
 import MobileSidebarToggle from "@/components/mobileSidebar"
-import { useAuth } from "@/stores/useAuth"
+
 
 import { CheckCircle, XCircle, AlertTriangle, ArrowLeft, Star, Zap, FileText } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 
 
 
@@ -24,12 +23,6 @@ export default function AnalysisClient({ analysisId, analysisData,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   feedbackHistory }: { analysisId:string, analysisData: any, feedbackHistory: any }) {
 
-    const {user} = useAuth();
-    if(!user){
-        redirect("/login")
-    }
-  
-  
   
 
   if (!analysisData) {
