@@ -5,7 +5,7 @@
   import { AnswerType, QuestionType } from "@/app/interview/[id]/InterviewClient"
   import { createClient } from "@/lib/utils/supabase/client"
   import jsPDF from "jspdf";
-  import html2canvas from "html2canvas";
+
 
   interface InterviewResultsProps {
     interviewId: string
@@ -27,76 +27,69 @@
     >([])
 
  
+const exportAsPDF = () => {
+  const doc = new jsPDF("p", "mm", "a4");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 15; // vertical position
 
-const exportAsPDF = async () => {
-  const doc = new jsPDF("p", "mm", "a4"); 
-  const container = document.createElement("div");
-container.style.width = "800px";
-container.style.padding = "20px";
-container.style.background = "#ffffff";
-container.style.color = "#000000"; 
-container.style.fontFamily = "Arial, sans-serif";
+  // Header
+  doc.setFontSize(18);
+  doc.text(`Interview Results - ${interviewId}`, pageWidth / 2, y, { align: "center" });
+  y += 10;
 
+  doc.setFontSize(12);
+  // Summary box
+  const summaryLines = [
+    `Questions Answered: ${answeredQuestions}/${questions.length}`,
+    `Completion Rate: ${Math.round(completionRate)}%`,
+    `Total Time: ${formatTime(totalTime)}`,
+    `Average Time per Question: ${formatTime(Math.round(averageTime))}`
+  ];
 
-  // Add header
-  const header = document.createElement("h2");
-  header.textContent = `Interview Results - ${interviewId}`;
-  header.style.textAlign = "center";
-  container.appendChild(header);
-
-  
-  const summary = document.createElement("p");
-  summary.innerHTML = `
-    Questions Answered: ${answeredQuestions}/${questions.length}<br/>
-    Completion Rate: ${Math.round(completionRate)}%<br/>
-    Total Time: ${formatTime(totalTime)}<br/>
-    Average Time per Question: ${formatTime(Math.round(averageTime))}
-  `;
-  summary.style.marginBottom = "20px";
-  container.appendChild(summary);
-
-  
-  questions.forEach((q, index) => {
-    const answer = answers.find((a) => a.questionId === q.id);
-    const feedback = feedbacks.find((f) => f.question_id === q.id);
-    const hasAnswer = answer && answer.answerText.trim().length > 0;
-
-    const qDiv = document.createElement("div");
-    qDiv.style.marginBottom = "15px";
-
-    const qText = document.createElement("h4");
-    qText.textContent = `Q${index + 1}: ${q.question_text}`;
-    qText.style.marginBottom = "5px";
-    qText.style.color = "#4ade80"; // greenish
-    qDiv.appendChild(qText);
-
-    const aText = document.createElement("p");
-    aText.textContent = hasAnswer ? `Answer: ${answer!.answerText}` : "Answer: No answer provided";
-    aText.style.marginBottom = "3px";
-    qDiv.appendChild(aText);
-
-    const fText = document.createElement("p");
-    fText.textContent = feedback ? `Feedback: ${feedback.feedback_text} (Score: ${feedback.score}/100)` : "Feedback: No feedback";
-    qDiv.appendChild(fText);
-
-    container.appendChild(qDiv);
+  summaryLines.forEach(line => {
+    doc.text(line, 14, y);
+    y += 6;
   });
 
-  document.body.appendChild(container);
+  y += 4; // spacing before questions
 
-  
-  const canvas = await html2canvas(container, { scale: 2, backgroundColor: "#ffffff" });
-  const imgData = canvas.toDataURL("image/png");
+  // Draw questions and answers
+  questions.forEach((q, idx) => {
+    if (y > 270) { // simple page break
+      doc.addPage();
+      y = 15;
+    }
 
-  const imgProps = doc.getImageProperties(imgData);
-  const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    const answer = answers.find(a => a.questionId === q.id);
+    const feedback = feedbacks.find(f => f.question_id === q.id);
+    const hasAnswer = answer && answer.answerText.trim().length > 0;
 
-  doc.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    // Question
+    doc.setFontSize(12);
+    doc.setTextColor(0, 128, 0); // greenish
+    doc.text(`Q${idx + 1}: ${q.question_text}`, 14, y);
+    y += 6;
+
+    // Answer
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Answer: ${hasAnswer ? answer!.answerText : "No answer provided"}`, 16, y);
+    y += 6;
+
+    // Feedback
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 255); // blueish
+    doc.text(
+      `Feedback: ${feedback ? feedback.feedback_text + ` (Score: ${feedback.score}/100)` : "No feedback"}`,
+      16,
+      y
+    );
+    y += 10;
+  });
+
   doc.save(`interview-results-${interviewId}.pdf`);
-
-  document.body.removeChild(container);
 };
+
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
