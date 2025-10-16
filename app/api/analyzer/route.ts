@@ -55,9 +55,11 @@ async function aifeedback({resumeText, jobDescription}: {resumeText: string, job
             Your job is to give helpful, real feedback. Be clear, specific, and honest — even if it stings a little. Add a *touch of sarcasm* here and there to keep it real and fun, but never be rude or mean. Think of yourself as a friendly mentor with a dry sense of humor.
 
             Return the feedback in a structured JSON format.
-
+            - "summary" should be the best possible summary
             - "match_score" should be a percentage string (e.g., "78%").
             - "strengths" should be concise, one-liner points.
+            - "missing_skills" should be effective, one liner and correct and concise.
+            - "weak_points" should be concise, short and effective
             - Keep feedback actionable and realistic.
 
             You are given two things:
@@ -118,15 +120,11 @@ async function aifeedback({resumeText, jobDescription}: {resumeText: string, job
                         items: {
                             type: Type.STRING
                         }
-                    },
-                    suggestions: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.STRING
-                        }
                     }
-                }
+                },
+                required: ["match_score", "summary", "strengths", "missing_skills", "weak_points"]
             }
+    
         }
     })
 
