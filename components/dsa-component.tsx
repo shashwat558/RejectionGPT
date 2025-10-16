@@ -14,51 +14,42 @@ interface DSASuggestion {
 }
 
 interface DSAPageProps {
-  userId: string
+  analysisId: string
 }
 
-export default function DSASuggestionsPage({ userId }: DSAPageProps) {
+export default function DSASuggestionsPage({ analysisId }: DSAPageProps) {
   const [suggestions, setSuggestions] = useState<DSASuggestion[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const dummySuggestions: DSASuggestion[] = [
-      { title: "Two Sum", difficulty: "Easy", topic: "Arrays", link: "https://leetcode.com/problems/two-sum/" },
-      {
-        title: "Longest Substring Without Repeating Characters",
-        difficulty: "Medium",
-        topic: "Strings",
-        link: "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
-      },
-      {
-        title: "Median of Two Sorted Arrays",
-        difficulty: "Hard",
-        topic: "Divide and Conquer",
-        link: "https://leetcode.com/problems/median-of-two-sorted-arrays/",
-      },
-      {
-        title: "Valid Parentheses",
-        difficulty: "Easy",
-        topic: "Stack",
-        link: "https://leetcode.com/problems/valid-parentheses/",
-      },
-      {
-        title: "Merge k Sorted Lists",
-        difficulty: "Hard",
-        topic: "Heap / Linked List",
-        link: "https://leetcode.com/problems/merge-k-sorted-lists/",
-      },
-      {
-        title: "Number of Islands",
-        difficulty: "Medium",
-        topic: "DFS / BFS",
-        link: "https://leetcode.com/problems/number-of-islands/",
-      },
-    ]
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch("/api/get-dsa-ques", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysisId, feedback: null })
+        })
+        const data = await res.json()
 
-    setSuggestions(dummySuggestions)
-    setLoading(false)
-  }, [userId])
+        // API returns either a list of objects (from questions table) or an array of problems
+        const mapped: DSASuggestion[] = (data.problems || []).map((p: any) => {
+          // Normalize keys coming from different sources
+          const title = p.name || p.title || p.problem_title || "Untitled"
+          const difficulty = p.difficulty || p.level || "Medium"
+          const topic = Array.isArray(p.topic_tags) ? p.topic_tags.join(", ") : p.topic || "General"
+          const link = p.link || p.leetcode_url || (p.name ? `https://leetcode.com/problems/${(p.name as string).toLowerCase().replace(/[^a-z0-9]+/g,'-')}/` : "#")
+          return { title, difficulty, topic, link }
+        })
+
+        setSuggestions(mapped)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSuggestions()
+  }, [analysisId])
 
   if (loading) {
     return <div className="py-10 text-center text-muted-foreground">Loading DSA suggestions...</div>

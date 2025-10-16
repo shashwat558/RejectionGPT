@@ -1,7 +1,8 @@
 import DSASuggestionsPage from "@/components/dsa-component";
 
 
-export default function Page() {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <main
       className="mx-auto w-full max-w-6xl p-6 min-h-screen"
@@ -13,7 +14,7 @@ export default function Page() {
           Handpicked problems with a clean, modern presentation. No bright colors, just focus.
         </p>
       </section>
-      <DSASuggestionsPage userId="demo-user" />
+      <DSASuggestionsPage analysisId={id} />
     </main>
   )
 }

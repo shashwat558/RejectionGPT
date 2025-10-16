@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, Type } from "@google/genai";
+import { createClientServer } from "@/lib/utils/supabase/server";
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
-    const { feedback } = await req.json(); 
+    const { feedback, analysisId } = await req.json(); 
+    const supabase = await createClientServer();
+
+    if (analysisId) {
+      const { data: existingList, error: listErr } = await supabase
+        .from("dsa_questions")
+        .select("id, analysis_result_id, title, difficulty, topic_tags, reason_suggested, created_at")
+        .eq("analysis_result_id", analysisId)
+        .order("created_at", { ascending: true })
+        .limit(5);
+
+      if (!listErr && Array.isArray(existingList) && existingList.length > 0) {
+        return NextResponse.json({ problems: existingList, fromCache: true });
+      }
+    }
     
     const prompt = `
       You are a DSA mentor. Based on the following resume feedback, suggest 5 LeetCode problems that will help the user strengthen weak areas relevant to their target job.
@@ -54,7 +69,39 @@ export async function POST(req: NextRequest) {
     });
 
     // Parse model output safely
-    const problems = JSON.parse(response.text ?? "[]");
+    type GeneratedProblem = {
+      name?: string;
+      title?: string;
+      difficulty?: "Easy" | "Medium" | "Hard" | string;
+      topic_tags?: string[];
+      reason_suggested?: string;
+      [key: string]: unknown;
+    };
+    const problems: GeneratedProblem[] = JSON.parse(response.text ?? "[]");
+
+    // 2) If analysisId provided, persist generated set into normalized dsa_questions rows
+    if (analysisId && Array.isArray(problems) && problems.length > 0) {
+      // Optional clear to avoid duplicates for this analysis
+      await supabase.from("dsa_questions").delete().eq("analysis_result_id", analysisId);
+
+      const rows = problems.map((p: GeneratedProblem) => ({
+        analysis_result_id: analysisId,
+        title: p.name ?? p.title ?? "Untitled",
+        difficulty: p.difficulty ?? "Medium",
+        topic_tags: Array.isArray(p.topic_tags) ? p.topic_tags : null,
+        reason_suggested: p.reason_suggested ?? null,
+      }));
+
+      const { data: inserted } = await supabase
+        .from("dsa_questions")
+        .insert(rows)
+        .select("id, analysis_result_id, title, difficulty, topic_tags, reason_suggested, created_at")
+        .order("created_at", { ascending: true });
+
+      if (inserted && inserted.length > 0) {
+        return NextResponse.json({ problems: inserted, fromCache: false });
+      }
+    }
 
     return NextResponse.json({ problems });
   } catch (err) {
