@@ -93,7 +93,7 @@ export default function LoginPage() {
         <div className='w-[1.5px] h-[1.5px] rounded-full bg-gray-300'></div>
         <div className='w-[1.5px] h-[1.5px] rounded-full bg-gray-300'></div>
       </div>
-      <h1 className={`${play.className} absolute top-[5%] left-[10%] text-2xl font-[900] text-white`}>RejectionGPT</h1>
+      
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

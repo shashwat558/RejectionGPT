@@ -68,7 +68,7 @@ const Navbar = () => {
                 
 
                 <div className='flex items-center gap-10 ml-5 max-sm:hidden'>
-                    {navLinks.map((link, index) => (
+                    {user && navLinks.map((link, index) => (
                     <Link href={link.link} key={index} className='text-md  tracking-wide text-gray-300 hover:text-white'>
                         {link.name}
                     </Link>
@@ -140,6 +140,8 @@ export default Navbar
 
 
 const DropDownMenu = ({ onClose }: { onClose: () => void }) => {
+  const { user } = useAuth();
+  
   return (
     <motion.div
       initial={{ y: -20, opacity: 0 }}
@@ -148,7 +150,7 @@ const DropDownMenu = ({ onClose }: { onClose: () => void }) => {
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className="fixed top-0 left-0 w-full h-1/2 z-50 bg-black/60 backdrop-blur-md shadow-md flex flex-col items-center justify-center space-y-6 text-white"
     >
-      {navLinks.map((link, index) => (
+      {user && navLinks.map((link, index) => (
         <Link
           href={link.link}
           key={index}
