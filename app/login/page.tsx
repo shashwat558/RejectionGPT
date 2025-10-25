@@ -19,7 +19,7 @@ const play = Roboto_Mono({
 })
 
 export default function LoginPage() {
-  const user = useAuth();
+  const {user} = useAuth();
   if(user){
     redirect('/')
   }
