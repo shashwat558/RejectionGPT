@@ -1,4 +1,4 @@
-import DSASuggestionsPage from "@/components/dsa-component";
+// import DSASuggestionsPage from "@/components/dsa-component";
 
 
 export default function Page() {
@@ -13,7 +13,7 @@ export default function Page() {
           Handpicked problems with a clean, modern presentation. No bright colors, just focus.
         </p>
       </section>
-      <DSASuggestionsPage userId="demo-user" />
+      {/* <DSASuggestionsPage userId="demo-user" /> */}
     </main>
   )
 }

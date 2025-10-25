@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Parse model output safely
+    
     type GeneratedProblem = {
       name?: string;
       title?: string;
@@ -79,7 +79,6 @@ export async function POST(req: NextRequest) {
     };
     const problems: GeneratedProblem[] = JSON.parse(response.text ?? "[]");
 
-    // 2) If analysisId provided, persist generated set into normalized dsa_questions rows
     if (analysisId && Array.isArray(problems) && problems.length > 0) {
       // Optional clear to avoid duplicates for this analysis
       await supabase.from("dsa_questions").delete().eq("analysis_result_id", analysisId);

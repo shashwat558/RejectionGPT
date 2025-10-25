@@ -106,7 +106,7 @@ const textSplitter = async (text:string) => {
 }
 
 const genAi = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
-console.log(process.env.GEMINI_API_KEY + " This is gemini key")
+
 
 export async function embedAndStore({resumeId, jdId}: {resumeId: string, jdId: string}) {
     const supabase = await createClientServer();

@@ -34,7 +34,7 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const {user, setUser} = useAuth()
     const router = useRouter();
-    console.log(user)
+    
 
 
    
