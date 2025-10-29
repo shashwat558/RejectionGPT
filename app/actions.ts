@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 //@ts-ignore
 const signInWIth = provider => async () => {
     const supabase = await createClientServer();
-    const callback_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/callback`;
+    const callback_url = `${process.env.SITE_URL}/auth/callback`;
 
     const {data, error} = await supabase.auth.signInWithOAuth({
         provider,
