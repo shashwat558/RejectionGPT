@@ -55,9 +55,9 @@ export default function AnalyticsClient({ analysisId, analysisData,
           <div className="max-w-4xl w-full p-6 md:p-8 flex flex-col rounded-lg border-t-3 border-[#383838] bg-[#252525] shadow-xl relative z-10">
             
             <div className="flex justify-between items-center mb-6">
-              <Link href="/" className="flex items-center text-gray-400 hover:text-gray-300 transition-colors">
+              <Link href="/analytics" className="flex items-center text-gray-400 hover:text-gray-300 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to Upload
+                Back to analytics
               </Link>
               <div className="flex items-center gap-2">
                 <ChatRedirectButton resumeId={analysisData.resume_id} descId={analysisData.desc_id} />
