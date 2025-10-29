@@ -11,25 +11,17 @@ interface DSASuggestion {
   difficulty: "Easy" | "Medium" | "Hard"
   link: string
   topic: string
+  reason_suggested: string
 }
 
-export type AnalysisFeedback = {
-  match_score: string
-  summary: string
-  strengths: string[]
-  missing_skills: string[]
-  weak_points: string[]
-  resume_id: string
-  user_id: string
-  desc_id: string
-}
+
 
 interface DSAPageProps {
   analysisId: string
-  feedback: AnalysisFeedback
+  
 }
 
-export default function DSASuggestionsPage({ analysisId, feedback }: DSAPageProps) {
+export default function DSASuggestionsPage({ analysisId}: DSAPageProps) {
   const [suggestions, setSuggestions] = useState<DSASuggestion[]>([])
   const [loading, setLoading] = useState(true);
 
@@ -37,36 +29,29 @@ export default function DSASuggestionsPage({ analysisId, feedback }: DSAPageProp
   useEffect(() => {
     const fetchSuggestions = async () => {
       try {
-        const res = await fetch("/api/get-dsa-ques", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ analysisId, feedback })
+        const res = await fetch(`/api/get-dsa-ques?analysisId=${encodeURIComponent(analysisId)}`, {
+          method: "GET"
         })
         const data = await res.json() as { problems?: unknown[] }
 
-
         const mapped: DSASuggestion[] = (data.problems || []).map((raw) => {
           const p = raw as Partial<{
-            name: string
             title: string
-            problem_title: string
             difficulty: string
-            level: string
-            topic: string
             topic_tags: string[]
-            link: string
-            leetcode_url: string
+            reason_suggested: string
           }>
-          // Normalize keys coming from different sources
-          const title = p.name || p.title || p.problem_title || "Untitled"
-          const difficultyRaw = (p.difficulty || p.level || "Medium").toString()
+          const title = p.title || "Untitled"
+          const difficultyRaw = (p.difficulty || "Medium").toString()
           const difficulty = ["Easy","Medium","Hard"].includes(difficultyRaw)
             ? (difficultyRaw as "Easy"|"Medium"|"Hard")
             : "Medium"
-          const topic = Array.isArray(p.topic_tags) ? p.topic_tags.join(", ") : p.topic || "General"
-          const link = p.link || p.leetcode_url || (p.name ? `https://leetcode.com/problems/${(p.name as string).toLowerCase().replace(/[^a-z0-9]+/g,'-')}/` : "#")
-          return { title, difficulty, topic, link }
+          const topic = Array.isArray(p.topic_tags) ? p.topic_tags.join(", ") : "General"
+          const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-')
+          const link = `https://leetcode.com/problems/${slug}/`
+          return { title, difficulty, topic, link, reason_suggested: p.reason_suggested || "No reason provided" }
         })
+        console.log(mapped)
 
         setSuggestions(mapped)
       } catch (e) {
@@ -76,7 +61,7 @@ export default function DSASuggestionsPage({ analysisId, feedback }: DSAPageProp
       }
     }
     fetchSuggestions()
-  }, [analysisId, feedback])
+  }, [analysisId])
 
   if (loading) {
     return (
@@ -105,10 +90,12 @@ export default function DSASuggestionsPage({ analysisId, feedback }: DSAPageProp
         <Card key={index} className="transition-colors bg-[#252525] text-gray-300 border border-[#2f2f2f] hover:border-[#3a3a3a]">
           <CardHeader className="space-y-3">
             <CardTitle className="text-pretty text-base leading-6">{q.title}</CardTitle>
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className={`rounded-full px-2.5 py-0.5 text-xs border ${difficultyClass(q.difficulty)}`}>
+            <div className="items-center gap-2 flex-wrap">
+              
+              <div className={`rounded-full max-w-fit px-2.5 py-0.5 text-xs border ${difficultyClass(q.difficulty)}`}>
                 {q.difficulty}
               </div>
+
               {q.topic.split(',').map((t, i) => (
                 <Badge key={i} variant="outline" className="rounded-full px-2.5 py-0.5 text-xs text-gray-400 border-[#3a3a3a]">
                   {t.trim()}
@@ -119,7 +106,7 @@ export default function DSASuggestionsPage({ analysisId, feedback }: DSAPageProp
           <CardContent>
             <p className="text-sm text-gray-400">
               {"Reason: "}
-              <span className="text-gray-300">Improve skills aligned with this topic and difficulty.</span>
+              <span className="text-gray-300">{q.reason_suggested}</span>
             </p>
           </CardContent>
           <CardFooter>

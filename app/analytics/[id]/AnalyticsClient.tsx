@@ -7,13 +7,13 @@ import FeedbackSidebar from "@/components/feedbackSidebar"
 import InterviewRedirectionBUtton from "@/components/INterviewRedirectionButton"
 import MatchScoreBadge from "@/components/MatchScore"
 import MobileSidebarToggle from "@/components/mobileSidebar"
-import { Button } from "@/components/ui/button"
+
 
 
 
 import { CheckCircle, XCircle, AlertTriangle, ArrowLeft, Star, Zap, FileText } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+
 
 
 
@@ -26,7 +26,7 @@ export default function AnalyticsClient({ analysisId, analysisData,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   feedbackHistory }: { analysisId:string, analysisData: any, feedbackHistory: any }) {
 
-    const router = useRouter();
+    
 
   
 
@@ -55,20 +55,17 @@ export default function AnalyticsClient({ analysisId, analysisData,
           <div className="max-w-4xl w-full p-6 md:p-8 flex flex-col rounded-lg border-t-3 border-[#383838] bg-[#252525] shadow-xl relative z-10">
             
             <div className="flex justify-between items-center mb-6">
-              <ChatRedirectButton resumeId={analysisData.resume_id} descId={analysisData.desc_id} />
-              <InterviewRedirectionBUtton analysisId={analysisId}/>
-              
               <Link href="/" className="flex items-center text-gray-400 hover:text-gray-300 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Upload
               </Link>
-
-              
-              
-
-              <ActionButtons analysisId={analysisId} />
+              <div className="flex items-center gap-2">
+                <ChatRedirectButton resumeId={analysisData.resume_id} descId={analysisData.desc_id} />
+                <InterviewRedirectionBUtton analysisId={analysisId}/>
+                <ActionButtons analysisId={analysisId} />
+              </div>
             </div>
-            <Button onClick={() => router.push(`/analytics/${analysisId}/practise`)}>Practice Questions</Button>
+            
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#333] text-gray-300 text-xs font-medium mb-4 self-start">
               <FileText className="w-4 h-4 mr-1 text-gray-400" />
               <span>Resume Analysis</span>

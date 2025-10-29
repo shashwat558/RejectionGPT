@@ -9,18 +9,7 @@ export async function POST(req: NextRequest) {
     const { feedback, analysisId } = await req.json(); 
     const supabase = await createClientServer();
 
-    if (analysisId) {
-      const { data: existingList, error: listErr } = await supabase
-        .from("dsa_questions")
-        .select("id, analysis_result_id, title, difficulty, topic_tags, reason_suggested, created_at")
-        .eq("analysis_result_id", analysisId)
-        .order("created_at", { ascending: true })
-        .limit(5);
-
-      if (!listErr && Array.isArray(existingList) && existingList.length > 0) {
-        return NextResponse.json({ problems: existingList, fromCache: true });
-      }
-    }
+    
     
     const prompt = `
       You are a DSA mentor. Based on the following resume feedback, suggest 5 LeetCode problems that will help the user strengthen weak areas relevant to their target job.
@@ -53,31 +42,39 @@ export async function POST(req: NextRequest) {
       config: {
         temperature: 0.7,
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              difficulty: { type: Type.STRING },
-              topic_tags: { type: Type.ARRAY, items: { type: Type.STRING } },
-              reason_suggested: { type: Type.STRING },
+         responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            questions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  difficulty: { type: Type.STRING },
+                  topic_tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  reason_suggested: { type: Type.STRING },
+                },
+                required: ["name", "difficulty", "topic_tags", "reason_suggested"],
+              },
             },
           },
-        },
-      },
+          required: ["questions"]
+        }
+      }
     });
 
     
     type GeneratedProblem = {
-      name?: string;
+      
       title?: string;
       difficulty?: "Easy" | "Medium" | "Hard" | string;
       topic_tags?: string[];
       reason_suggested?: string;
       [key: string]: unknown;
     };
-    const problems: GeneratedProblem[] = JSON.parse(response.text ?? "[]");
+    const parsed = JSON.parse(response.text ?? "{}");
+    const problems = parsed.questions ?? [] as GeneratedProblem[];
 
     if (analysisId && Array.isArray(problems) && problems.length > 0) {
       // Optional clear to avoid duplicates for this analysis
@@ -107,6 +104,34 @@ export async function POST(req: NextRequest) {
     console.error("DSA suggestion error:", err);
     return NextResponse.json(
       { problems: [], error: "Failed to generate DSA questions" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const analysisId = req.nextUrl.searchParams.get("analysisId");
+    if (!analysisId) {
+      return NextResponse.json({ error: "analysisId is required" }, { status: 400 });
+    }
+
+    const supabase = await createClientServer();
+    const { data, error } = await supabase
+      .from("dsa_questions")
+      .select("id, analysis_result_id, title, difficulty, topic_tags, reason_suggested, created_at")
+      .eq("analysis_result_id", analysisId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      return NextResponse.json({ problems: [], error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ problems: data ?? [] });
+  } catch (err) {
+    console.error("DSA questions fetch error:", err);
+    return NextResponse.json(
+      { problems: [], error: "Failed to fetch DSA questions" },
       { status: 500 }
     );
   }
