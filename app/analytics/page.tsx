@@ -1,15 +1,14 @@
 import Link from "next/link"
 
-import { FileText, Plus, BarChart3, Search } from "lucide-react"
+import { FileText, Plus, BarChart3 } from "lucide-react"
 import { getAllFeedbacks } from "@/lib/actions/actions"
 import AnalyticsOverview from "@/components/analysisOverview"
-import FilterDropdown from "@/components/filterDropdown"
-import AnalysisCard from "@/components/analysisCard"
+import AnalyticsSearchList from "@/components/AnalyticsSearchList"
 import { createClientServer } from "@/lib/utils/supabase/server"
 import { redirect } from "next/navigation"
 
 
-export default async function AnalyzeDashboardPage() {
+export default async function AnalyticsDashboardPage() {
 
   const supabase = await createClientServer();
   const {data} = await supabase.auth.getUser();
@@ -48,36 +47,11 @@ export default async function AnalyzeDashboardPage() {
        
         <AnalyticsOverview data={feedbackData} />
 
-        {/* Recent Analyses */}
+        {/* Recent Analyses with Search */}
         <div className="mt-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-5 bg-gray-700"></div>
-              <h2 className="text-xl text-gray-300 font-semibold">Recent Analyses</h2>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Search analyses..."
-                  className="w-full md:w-64 pl-9 pr-3 py-2 bg-[#252525] border border-[#383838] rounded-md text-gray-300 text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#444]"
-                />
-              </div>
-
-              <FilterDropdown />
-            </div>
-          </div>
-
-          {/* Analysis Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {feedbackData.map((feedback) => (
-              <AnalysisCard key={feedback.id} feedback={feedback} />
-            ))}
-          </div>
-
-          {feedbackData.length === 0 && (
+          {feedbackData.length > 0 ? (
+            <AnalyticsSearchList data={feedbackData} />
+          ) : (
             <div className="bg-[#252525] border border-[#383838] rounded-lg p-8 text-center">
               <FileText className="w-12 h-12 text-gray-500 mx-auto mb-4" />
               <h3 className="text-gray-300 text-lg font-medium mb-2">No analyses yet</h3>

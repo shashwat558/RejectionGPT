@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation"
 
 
 
-export default function AnalysisClient({ analysisId, analysisData, 
+export default function AnalyticsClient({ analysisId, analysisData, 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   feedbackHistory }: { analysisId:string, analysisData: any, feedbackHistory: any }) {
 
@@ -68,7 +68,7 @@ export default function AnalysisClient({ analysisId, analysisData,
 
               <ActionButtons analysisId={analysisId} />
             </div>
-            <Button onClick={() => router.push(`/analyze/${analysisId}/practise`)}>Practice Questions</Button>
+            <Button onClick={() => router.push(`/analytics/${analysisId}/practise`)}>Practice Questions</Button>
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#333] text-gray-300 text-xs font-medium mb-4 self-start">
               <FileText className="w-4 h-4 mr-1 text-gray-400" />
               <span>Resume Analysis</span>

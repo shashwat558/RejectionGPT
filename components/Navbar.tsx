@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 const navLinks = [
     {
         name: "Analyze",
-        link: "/analyze"
+        link: "/analytics"
     },
     {
         name: "dashboard",

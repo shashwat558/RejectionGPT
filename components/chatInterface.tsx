@@ -358,7 +358,7 @@ export default function ChatInterface({conversationId}: {conversationId: string}
       
       <div className="flex items-center justify-between p-4 border-b border-[#383838]">
         <Link 
-          href="/analyze" 
+          href="/analytics" 
           className="flex items-center gap-2 text-gray-400 hover:text-gray-300 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

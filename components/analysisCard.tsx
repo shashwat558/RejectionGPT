@@ -55,7 +55,7 @@ const { backgroundColor, color } = getScoreColor(feedback.matchScore);
         </p>
 
         <Link
-          href={`/analyze/${feedback.id}`}
+          href={`/analytics/${feedback.id}`}
           className="flex items-center text-gray-400 text-sm group-hover:text-gray-300 transition-colors"
         >
           View Analysis

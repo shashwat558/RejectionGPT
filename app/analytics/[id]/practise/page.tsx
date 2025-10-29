@@ -10,7 +10,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const supabase = await createClientServer();
   const { data: analysisData, error: analysisError } = await supabase.from("analysis_result").select("*").eq("id", id).single();
   if(analysisError || !analysisData) {
-    redirect("/analyze");
+    redirect("/analytics");
   }
   return (
     <main
@@ -31,7 +31,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </p>
           </div>
 
-          <Link href={`/analyze/${id}`} className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-200 transition-colors">
+          <Link href={`/analytics/${id}`} className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-200 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to Analysis
           </Link>

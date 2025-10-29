@@ -75,7 +75,7 @@ export default function FeedbackSidebar({ feedbacks, currentId }: FeedbackSideba
         {filteredFeedbacks.map((feedback) => (
           <Link
             key={feedback.id}
-            href={`/analyze/${feedback.id}`}
+            href={`/analytics/${feedback.id}`}
             className={`block ${isCollapsed ? "px-3 py-3" : "px-3 py-2.5"} mb-1 mx-2 rounded-md transition-colors ${
               feedback.id === currentId
                 ? "bg-[#333] text-gray-200"

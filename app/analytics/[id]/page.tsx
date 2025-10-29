@@ -1,6 +1,6 @@
 
 import { getAllFeedbacks, getFeedback } from "@/lib/actions/actions";
-import AnalysisClient from "./AnalyzeClient"
+import AnalysisClient from "./AnalyticsClient"
 import { createClientServer } from "@/lib/utils/supabase/server";
 import { redirect } from "next/navigation";
 

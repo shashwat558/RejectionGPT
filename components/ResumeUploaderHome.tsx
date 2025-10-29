@@ -44,7 +44,7 @@ const ResumeUploaderHome = () => {
 
             if (!analysisId) throw new Error("Missing analysisId in response");
 
-            router.push(`/analyze/${analysisId}`);
+            router.push(`/analytics/${analysisId}`);
         } catch (error) {
             console.error("Error during analysis upload:", error);
             setIsLoading(false);
@@ -67,6 +67,7 @@ const ResumeUploaderHome = () => {
             transition={{ duration: 0.5 }}
             className='w-full flex flex-col justify-center items-center mt-10 p-2'
         >
+            
             
             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[#303030]/20 to-transparent pointer-events-none" />
 
