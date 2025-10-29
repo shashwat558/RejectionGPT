@@ -25,9 +25,9 @@ export default function FeedbackSidebar({ feedbacks, currentId }: FeedbackSideba
 
   const filteredFeedbacks = feedbacks.filter(
     (feedback) =>
-      feedback.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      feedback.company.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      (feedback.jobTitle || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (feedback.company || "").toLowerCase().includes(searchQuery.toLowerCase())
+   )
 
   const getScoreColor = (score: string) => {
   const numeric = parseInt(score.replace("%", ""));

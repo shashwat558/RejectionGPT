@@ -26,20 +26,8 @@ export default function RootLayout({
         className={`${Robotomono.className} antialiased bg-[#111111]`}
       >
         <AuthProvider />
-        <div className="min-h-screen w-full relative bg-transparent">
-    {/* X Organizations Black Background with Top Glow */}
-    <div
-      className="absolute inset-0 z-0"
-      style={{
-       background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 180, 255, 0.25), transparent 70%), #000000",
-      }}
-    />
-  
-    {/* Your Content/Components */}
-  
         <ConditionalNavbar />
         {children}
-        </div>
       </body>
     </html>
   );
