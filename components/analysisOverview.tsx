@@ -1,6 +1,7 @@
 "use client"
 
 // import { useState } from "react"
+import { useMemo } from "react"
 import { TrendingUp, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 
 interface AnalyticsOverviewProps {
@@ -11,17 +12,19 @@ interface AnalyticsOverviewProps {
 export default function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
   // const [timeframe, setTimeframe] = useState("all")
 
-  
-  const totalAnalyses = data.length
-   const parseScore = (score: string) => parseInt(score.replace("%", ""))
-   const highMatches = data.filter((item) => parseScore(item.matchScore) >= 80).length
-  const mediumMatches = data.filter((item) => {
-    const val = parseScore(item.matchScore)
-    return val >= 50 && val < 80
-  }).length
-  const lowMatches = data.filter((item) => parseScore(item.matchScore) < 50).length
+  const { totalAnalyses, highMatches, mediumMatches, lowMatches, matchRate } = useMemo(() => {
+    const parseScore = (score?: string) => parseInt((score || "0").replace("%", ""))
+    const total = data.length
+    const high = data.filter((item) => parseScore(item.matchScore) >= 80).length
+    const medium = data.filter((item) => {
+      const val = parseScore(item.matchScore)
+      return val >= 50 && val < 80
+    }).length
+    const low = data.filter((item) => parseScore(item.matchScore) < 50).length
+    const match = total > 0 ? Math.round((high / total) * 100) : 0
+    return { totalAnalyses: total, highMatches: high, mediumMatches: medium, lowMatches: low, matchRate: match }
+  }, [data])
 
-  const matchRate = totalAnalyses > 0 ? Math.round((highMatches / totalAnalyses) * 100) : 0
   const improvementRate = 12
 
   return (

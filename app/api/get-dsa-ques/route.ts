@@ -127,7 +127,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ problems: [], error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ problems: data ?? [] });
+    
+    const headers = new Headers({
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120"
+    })
+    return NextResponse.json({ problems: data ?? [] }, { headers });
   } catch (err) {
     console.error("DSA questions fetch error:", err);
     return NextResponse.json(

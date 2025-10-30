@@ -8,6 +8,9 @@ import { createClientServer } from "@/lib/utils/supabase/server"
 import { redirect } from "next/navigation"
 
 
+
+export const revalidate = 60
+
 export default async function AnalyticsDashboardPage() {
 
   const supabase = await createClientServer();
@@ -15,7 +18,7 @@ export default async function AnalyticsDashboardPage() {
   if(!data.user){
     redirect(`${process.env.SITE_URL}/login`)
   }
-  
+    
   
   const feedbackData = await getAllFeedbacks()
 
