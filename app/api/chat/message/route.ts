@@ -2,8 +2,21 @@ import { aiAnswer } from "@/lib/actions/actions";
 import { createClientServer } from "@/lib/utils/supabase/server";
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+import Redis from "ioredis";
 
+const redis = new Redis(process.env.REDIS_URL!);
+const LIMIT = 5;
+const DURATION = 60;
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
+  const key = `rate-limit:${ip}`;
+  const current = await redis.incr(key);
+  if(current === 1){
+    await redis.expire(key, DURATION);
+  }
+  if(current > LIMIT){
+    return NextResponse.json({error:"Rate limit exceeded"}, {status: 429}); 
+  }
   const { prompt, conversationId, conversationHistory } = await req.json();
   console.log("Received:", { prompt, conversationId, conversationHistory });
 

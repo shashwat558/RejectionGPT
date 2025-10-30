@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, RotateCcw, ThumbsUp, ThumbsDown, User, Bot, Link as LinkIcon } from "lucide-react"
+import { Copy, RotateCcw, ThumbsUp, ThumbsDown, Link as LinkIcon } from "lucide-react"
 import { motion } from "framer-motion"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -41,16 +41,9 @@ export default function MessageBubble({ message, onRegenerate, onCopy }: Message
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      {/* Avatar */}
-      <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-          isUser ? "bg-[#333] text-gray-300" : "border-[1px] text-white"
-        }`}
-      >
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-      </div>
+     
 
-      {/* Bubble */}
+     
       <div className={`flex flex-col max-w-[80%] ${isUser ? "items-end" : "items-start"}`}>
         <div
           className={`rounded-xl px-4 py-3 ${
