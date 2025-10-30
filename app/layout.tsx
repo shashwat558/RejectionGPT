@@ -3,6 +3,7 @@ import {   Outfit } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
+import { Analytics } from "@vercel/analytics/next";
 
 const Robotomono = Outfit({
     subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
         <AuthProvider />
         <ConditionalNavbar />
         {children}
+        <Analytics />
       </body>
     </html>
   );
