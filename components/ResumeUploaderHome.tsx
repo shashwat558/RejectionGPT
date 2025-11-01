@@ -1,11 +1,11 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 import React, {useRef, useState } from 'react'
-import { motion, useScroll} from "framer-motion";
+import { motion} from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { CheckCircle, FileText, Briefcase, Star, Coffee, Zap } from 'lucide-react';
 import { useAuth } from '@/stores/useAuth';
-import Image from 'next/image';
+
 const ResumeUploaderHome = () => {
     const [resume, setResume] = useState<File | null>(null);
     const [jobDesc, setJobDesc] = useState<string | null>(null);
@@ -15,14 +15,7 @@ const ResumeUploaderHome = () => {
     const ref = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [videoPlaying, setVideoPlaying] = useState(true);
-    const {scrollYProgress} = useScroll({
-
-        container: containerRef,
-        target: ref,
-        axis: "y",
-        offset: ["start end", "center center"]
-
-    });
+    
     
 
    
@@ -247,7 +240,7 @@ const ResumeUploaderHome = () => {
                 </div>
              
              
-                <video style={{ scale: scrollYProgress }} autoPlay preload='auto' controls loop muted src="kanye.mp4" className='w-full h-full object-cover rounded-xl' ref={ref} onPlay={() => setVideoPlaying(true)} onPause={() => setVideoPlaying(false)} />
+                <video autoPlay preload='auto' controls loop muted src="kanye.mp4" className='w-full h-full object-cover rounded-xl' ref={ref} onPlay={() => setVideoPlaying(true)} onPause={() => setVideoPlaying(false)} />
              
             </motion.div>
 
