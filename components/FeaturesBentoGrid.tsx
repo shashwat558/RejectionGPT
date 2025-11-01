@@ -17,7 +17,7 @@ export default function FeaturesBentoGrid() {
         </p>
       </div>
 
-      <div className="w-full p-3 sm:p-4 md:p-3 flex flex-col md:flex-row gap-4 md:gap-0 bg-[#1a1919] border border-[#383838] rounded-lg">
+      <div className="w-full p-3 sm:p-4 md:p-3 flex flex-col md:flex-row gap-4 md:gap-0 bg-[#131212] border border-[#383838] rounded-lg">
       
         <div className="w-full md:w-1/3 md:h-[700px] flex flex-col justify-between items-center gap-4 md:gap-5 p-2 md:p-2">
           <div className="w-full bg-[radial-gradient(circle_at_top_left,#4d4d4d,#171717)] rounded-lg border border-[#383838] md:h-[48%]">
@@ -90,7 +90,7 @@ export default function FeaturesBentoGrid() {
             </div>
           </div>
 
-          <div className="hidden md:flex absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 items-center justify-center bg-[#1A1919] rounded-[40px] pointer-events-none">
+          <div className="hidden md:flex absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 items-center justify-center bg-[#131212] rounded-[40px] pointer-events-none">
             <div className="border-gray-600 w-[80%] h-[80%] rounded-[25px] border-[1px] p-[1px]">                  
             <div className="bg-[#222121] w-full h-full rounded-[25px] border-[1px] border-[#383838] border-t-2 border-l-2 border-r-2">
                 <Image src="/logo.svg" alt="success" width={500} height={500} className="w-full h-full object-cover" />

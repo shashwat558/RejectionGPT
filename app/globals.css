@@ -123,6 +123,7 @@
 
 body {
   cursor: url('/plane.svg') 0 0, auto;
+  overflow-x: hidden;
 }
 
 ::selection {
