@@ -393,16 +393,16 @@ export async function generateInterviewQuestionsAndSaveToDb({interviewId}: {inte
             const result = response.text;
             const sanitizedJsonString = JSON.parse(result ?? "");
             const questions = sanitizedJsonString.questions;
+
+            const rows = questions.map((question: string, index: number) => {
+                return {
+                    interview_id: interviewId,
+                    question_text: question,
+                    order: index + 1
+                };
+            });
             
-            if(questions && questions.length > 0){
-                for(let i = 0; i < questions.length; i++) {
-                    await supabase.from("interview_questions").insert({
-                        interview_id: interviewId,
-                        question_text: questions[i],
-                        order: i + 1
-                    })
-                }
-            }
+            await supabase.from("interview_questions").insert(rows);
 
            
 
@@ -495,16 +495,16 @@ export async function evaluateResponsesAndSave(responses: ResponseType[],intervi
         console.error("Failed to parse result as JSON", e);
     }
 
-   await Promise.all(
-  (parsedResult.feedbacks ?? []).map((feedback, index) =>
-    supabase.from("interview_feedback").insert({
-      interview_id: interviewId,
-      question_id: responses[index].question_id,
-      score: feedback.score,
-      feedback_text: feedback.feedback_text
-    })
-  )
-);
+    const rows = parsedResult.feedbacks?.map((feedback, index) => {
+        return{
+            interview_id: interviewId,
+            question_id: responses[index].question_id,
+            score: feedback.score,
+            feedback_text: feedback.feedback_text
+        }
+    });
+
+    await supabase.from("interview_feedback").insert(rows);
 
 
 }
