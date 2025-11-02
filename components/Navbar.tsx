@@ -69,7 +69,7 @@ const Navbar = () => {
 
                 <div className='flex items-center gap-10 ml-5 max-sm:hidden'>
                     {user && navLinks.map((link, index) => (
-                    <Link href={link.link} key={index} className='text-md  tracking-wide text-gray-300 hover:text-white'>
+                    <Link prefetch={user ? true : false} href={link.link} key={index} className='text-md  tracking-wide text-gray-300 hover:text-white'>
                         {link.name}
                     </Link>
                 ))}
