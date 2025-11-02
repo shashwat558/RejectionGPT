@@ -13,7 +13,6 @@ import { useRouter } from 'next/navigation';
 
 
 
-
 const navLinks = [
     {
         name: "Analytics",
@@ -23,6 +22,10 @@ const navLinks = [
         name: "Practice",
         link: "/practice"
     },
+    {
+      name: "Diagram(Beta)",
+      link: "/diagram"
+    }
     
 ]
 
