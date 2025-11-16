@@ -233,18 +233,18 @@ export default function ChatInterface({conversationId}: {conversationId: string}
     const assistantMessageIndex = messages.findIndex(msg => msg.id === messageId);
     if (assistantMessageIndex === -1) return;
 
-    // Find the user message that prompted this response
+
     const userMessage = messages[assistantMessageIndex - 1];
     if (!userMessage || userMessage.role !== "user") return;
 
-    // Remove the assistant message and all messages after it
+
     setMessages(prev => prev.slice(0, assistantMessageIndex));
 
-    // Set the input to the user's original message
+    
     setInput(userMessage.content);
     setLastInput(userMessage.content);
 
-    // Trigger a new response
+    
     setIsLoading(true);
 
     const newAssistantMessage: Message = {

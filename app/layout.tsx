@@ -49,9 +49,7 @@ export default function RootLayout({
 
       
 
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[85%] h-[150px] bg-gradient-to-t from-yellow-400/90 via-white/20 to-transparent blur-[140px] rounded-full pointer-events-none animate-pulse opacity-80" style={{
-        animation: "pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite "
-      }}></div>
+      
         <AuthProvider />
         <ConditionalNavbar />
         <div className="min-h-screen flex flex-col">
