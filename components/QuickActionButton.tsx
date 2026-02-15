@@ -37,7 +37,7 @@ export default function QuickActions({ onActionClick }: QuickActionsProps) {
           <button
             key={index}
             onClick={() => onActionClick(item.action)}
-            className="flex items-center gap-2 px-3 py-2 bg-[#2a2a2a] border border-[#383838] rounded-lg text-gray-300 hover:bg-[#333] hover:border-[#444] transition-colors whitespace-nowrap text-sm"
+            className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-full text-gray-200 hover:bg-white/10 transition-colors whitespace-nowrap text-sm"
           >
             {item.icon}
             <span>{item.label}</span>

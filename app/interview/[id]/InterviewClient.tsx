@@ -3,6 +3,7 @@ import InterviewQuestions from '@/components/InterviewQuestions';
 import InterviewResults from '@/components/InterviewResult';
 import InterviewStart from '@/components/InterviewStart';
 import { createClient } from '@/lib/utils/supabase/client';
+import { submitInterviewResponses } from '@/lib/services/interview.client';
 import { UUID } from 'crypto';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
@@ -87,18 +88,14 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
       supabase.from("interview")
         .update({ ended_at: new Date(), status: "completed" })
         .eq("id", interviewId),
-      fetch("/api/interview/result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          interviewId,
-          responses: questions.map((q, i) => ({
-            question_id: q.id,
-            question_text: q.question_text,
-            answer: allAnswers[i]?.answerText ?? "",
-          })),
-        }),
-      }),
+      submitInterviewResponses(
+        questions.map((q, i) => ({
+          question_id: q.id,
+          question_text: q.question_text,
+          answer: allAnswers[i]?.answerText ?? "",
+        })),
+        interviewId
+      ),
     ]);
 
     setCurrentState("result");

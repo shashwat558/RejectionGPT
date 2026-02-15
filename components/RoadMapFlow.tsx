@@ -5,6 +5,7 @@ import ReactFlow, { Background, Controls, MiniMap, Node, Edge, BackgroundVariant
 import "reactflow/dist/style.css";
 import { getLayoutedElements } from "./dagreLayout";
 import RoadmapNode from "./RoadmapNode";
+import { useRoadmapProgress } from "@/stores/roadmapProgressStore";
 
 const nodeTypes = {
   roadmapNode: RoadmapNode,
@@ -29,7 +30,16 @@ interface RoadmapData {
   edges: RoadmapEdgeRaw[];
 }
 
-export default function RoadmapFlow({ roadmapData }: { roadmapData: RoadmapData }) {
+export default function RoadmapFlow({ roadmapData, roadmapId }: { roadmapData: RoadmapData; roadmapId: string }) {
+  const { completedNodes, toggleNode, resetRoadmap } = useRoadmapProgress((state) => ({
+    completedNodes: state.completedNodes,
+    toggleNode: state.toggleNode,
+    resetRoadmap: state.resetRoadmap,
+  }));
+  const completed = useMemo(() => completedNodes[roadmapId] || [], [completedNodes, roadmapId]);
+  const totalNodes = roadmapData.nodes.length;
+  const progress = totalNodes === 0 ? 0 : Math.round((completed.length / totalNodes) * 100);
+
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = roadmapData.nodes.map((n: RoadmapNodeRaw) => ({
       id: n.id,
@@ -40,6 +50,8 @@ export default function RoadmapFlow({ roadmapData }: { roadmapData: RoadmapData 
         category: n.category || "",
         duration: n.duration || "",
         difficulty: n.difficulty || "",
+        isComplete: completed.includes(n.id),
+        onToggleComplete: () => toggleNode(roadmapId, n.id),
       },
       position: { x: 0, y: 0 },
     }));
@@ -57,10 +69,20 @@ export default function RoadmapFlow({ roadmapData }: { roadmapData: RoadmapData 
     }));
 
     return getLayoutedElements(nodes, edges, "TB"); // "TB" = top to bottom
-  }, [roadmapData]);
+  }, [completed, roadmapData, roadmapId, toggleNode]);
 
   return (
-    <div className="w-full h-[85vh] bg-[#1a1919]">
+    <div className="w-full h-[85vh] bg-[#0f0f0f] relative">
+      <div className="absolute right-4 top-4 z-10 flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-gray-200">
+        <span>{completed.length}/{totalNodes} complete</span>
+        <span className="text-gray-500">{progress}%</span>
+        <button
+          onClick={() => resetRoadmap(roadmapId)}
+          className="rounded-full border border-white/10 px-2 py-1 text-[11px] text-gray-300 hover:bg-white/10"
+        >
+          Reset
+        </button>
+      </div>
       <ReactFlow
         nodes={nodes}
         edges={edges}

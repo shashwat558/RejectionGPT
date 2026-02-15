@@ -1,5 +1,6 @@
 import { create } from "zustand"
-import {persist} from "zustand/middleware"
+import { persist } from "zustand/middleware"
+import type { ChatSource } from "@/lib/types/chat"
 
 
 interface Message {
@@ -8,6 +9,7 @@ interface Message {
     role: "user" | "assistant" ,
     timestamp: Date,
     isTyping?: boolean
+    sources?: ChatSource[]
 }
 type messagesState = {
   messages: Message[],

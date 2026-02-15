@@ -1,15 +1,9 @@
 import Link from "next/link"
 import { Calendar, Briefcase, ArrowRight } from "lucide-react"
+import type { AnalysisSummary } from "@/lib/types/analytics"
 
 interface AnalysisCardProps {
-  feedback: {
-    id: string
-    jobTitle: string
-    company: string
-    date: string
-    matchScore: string
-    description?: string
-  }
+  feedback: AnalysisSummary
 }
 
 export default function AnalysisCard({ feedback }: AnalysisCardProps) {

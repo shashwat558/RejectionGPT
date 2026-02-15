@@ -1,5 +1,5 @@
 
-import { embedAndStore } from "@/lib/actions/actions";
+import { embedAndStore } from "@/lib/services/embedding.service";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

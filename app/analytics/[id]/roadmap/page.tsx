@@ -41,7 +41,7 @@ const page = async ({params}: {params: Promise<{id: string}>}) => {
         </div>
 
         {/* Roadmap Flow */}
-        <RoadMapFlow roadmapData={roadmapData} />
+        <RoadMapFlow roadmapData={roadmapData} roadmapId={id} />
       </div>
     </div>
   )

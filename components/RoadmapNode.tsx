@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { Handle, Position } from "reactflow";
 
 interface RoadmapNodeData {
@@ -9,6 +10,8 @@ interface RoadmapNodeData {
   category: string;
   duration: string;
   difficulty?: string;
+  isComplete?: boolean;
+  onToggleComplete?: () => void;
 }
 
 export default function RoadmapNode({ data }: { data: RoadmapNodeData }) {
@@ -32,7 +35,11 @@ export default function RoadmapNode({ data }: { data: RoadmapNodeData }) {
   };
 
   return (
-    <div className="px-4 py-3 shadow-lg rounded-lg border-2 border-[#383838] bg-[#252525] min-w-[280px] max-w-[320px]">
+    <div
+      className={`px-4 py-3 shadow-lg rounded-lg border-2 bg-[#161616] min-w-[280px] max-w-[320px] ${
+        data.isComplete ? "border-white/40" : "border-white/10"
+      }`}
+    >
       <Handle type="target" position={Position.Top} className="!bg-[#4a90e2]" style={{ width: 8, height: 8 }} />
       
       {/* Header */}
@@ -40,6 +47,13 @@ export default function RoadmapNode({ data }: { data: RoadmapNodeData }) {
         <h3 className="text-base font-bold text-gray-100 flex-1 leading-tight pr-2">
           {data.title}
         </h3>
+        <button
+          onClick={data.onToggleComplete}
+          className="text-gray-400 hover:text-white transition-colors"
+          title={data.isComplete ? "Mark as incomplete" : "Mark as complete"}
+        >
+          {data.isComplete ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+        </button>
         {data.difficulty && (
           <span
             className={`${getDifficultyColor(data.difficulty)} text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap`}
@@ -67,7 +81,7 @@ export default function RoadmapNode({ data }: { data: RoadmapNodeData }) {
 
       {/* Duration */}
       {data.duration && (
-        <div className="flex items-center gap-1 text-xs text-gray-400 border-t border-[#383838] pt-2">
+        <div className="flex items-center gap-1 text-xs text-gray-400 border-t border-white/10 pt-2">
           <svg
             className="w-4 h-4"
             fill="none"

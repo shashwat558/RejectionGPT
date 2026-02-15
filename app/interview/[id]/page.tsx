@@ -1,8 +1,9 @@
 import React from 'react'
 import InterviewClient from './InterviewClient';
-import { getInterviewQuestions } from '@/lib/actions/actions';
+
 
 import { createClientServer } from '@/lib/utils/supabase/server';
+import { getInterviewQuestions } from '@/lib/actions/actions';
 
 const page = async ({params}: {params: Promise<{id: string}>}) => {
     const {id} = await params;
@@ -16,8 +17,10 @@ const page = async ({params}: {params: Promise<{id: string}>}) => {
     }
     
     const interviewQUestions = await getInterviewQuestions(id)
+
+    
     const questions = interviewQUestions.map((question) => ({
-        id: question.id,
+        id: question.id as `${string}-${string}-${string}-${string}-${string}`,
         index: question.order,
         question_text: question.question_text
     }))

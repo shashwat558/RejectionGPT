@@ -1,4 +1,5 @@
 
+
 import { getAllFeedbacks, getFeedback } from "@/lib/actions/actions";
 import AnalysisClient from "./AnalyticsClient"
 import { createClientServer } from "@/lib/utils/supabase/server";
@@ -14,8 +15,8 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
 
   const supabase = await createClientServer();
-  const user = await supabase.auth.getUser();
-  if(!user){
+  const user = await supabase.auth.getUser()
+  if (!user.data.user) {
     redirect("/login")
   }
   

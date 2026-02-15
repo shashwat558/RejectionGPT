@@ -1,46 +1,31 @@
-import { generateInterviewQuestionsAndSaveToDb } from "@/lib/actions/actions";
-import { createClientServer } from "@/lib/utils/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"
+import { createClientServer } from "@/lib/utils/supabase/server"
+import { createInterview } from "@/lib/services/interview.service"
 
 export async function POST(req: NextRequest) {
-    const {analysisId} = await req.json();
-    console.log("--------------------------------------------------------------------------------------------", analysisId)
-    const supabase = await createClientServer();
+  try {
+    const { analysisId } = await req.json()
 
-    try{
-
-
-        const {data: analysisData, error} = await supabase.from("analysis_result").select("resume_id, desc_id ,user_id").eq('id', analysisId).single();
-
-    if(error || !analysisData){
-        throw new Error(error?.message);
+    if (!analysisId) {
+      return NextResponse.json(
+        { error: "Missing analysisId" },
+        { status: 400 }
+      )
     }
 
-    const {data: alreadyExists} = await supabase.from("interview").select("id, status").eq('resume_id',analysisData.resume_id ).single();
-    if(alreadyExists?.id){
-        return NextResponse.json({interviewId: alreadyExists.id, isCompleted: alreadyExists.status})
-    }
+    const supabase = await createClientServer()
+    const result = await createInterview(supabase, analysisId)
 
-
-    const {data:interviewId, error: InterviewIdError} = await supabase.from("interview").insert({
-        resume_id: analysisData.resume_id,
-        job_desc_id: analysisData.desc_id,
-        user_id: analysisData.user_id,
-         
-    }).select('id').single();
-
-    if(InterviewIdError){
-        console.log(InterviewIdError.message)
-    }
-
-    await generateInterviewQuestionsAndSaveToDb({interviewId: interviewId?.id})
-
-    return NextResponse.json({success: true, interviewId: interviewId?.id})
-} catch(error){
-    console.log(error);
-    return NextResponse.json({success: false})
-}
-    
-
-
+    return NextResponse.json({
+      success: true,
+      interviewId: result.interviewId,
+      isCompleted: result.isCompleted,
+    })
+  } catch (error) {
+    console.error("[questions] error", error)
+    return NextResponse.json(
+      { success: false, error: "Failed to create interview" },
+      { status: 500 }
+    )
+  }
 }

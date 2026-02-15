@@ -4,17 +4,10 @@ import { useMemo, useState } from "react"
 import AnalysisCard from "./analysisCard"
 import FilterDropdown from "./filterDropdown"
 import { Search } from "lucide-react"
+import type { AnalysisSummary } from "@/lib/types/analytics"
+import EmptyState from "@/components/ui/empty-state"
 
-type Item = {
-  id: string
-  jobTitle: string
-  company: string
-  date: string
-  matchScore: string
-  description?: string
-}
-
-export default function AnalyticsSearchList({ data }: { data: Item[] }) {
+export default function AnalyticsSearchList({ data }: { data: AnalysisSummary[] }) {
   const [query, setQuery] = useState("")
 
   const normalized = (value?: string) => (value || "").toLowerCase()
@@ -63,9 +56,8 @@ export default function AnalyticsSearchList({ data }: { data: Item[] }) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="bg-[#252525] border border-[#383838] rounded-lg p-8 text-center mt-4">
-          <h3 className="text-gray-300 text-lg font-medium mb-2">No matches</h3>
-          <p className="text-gray-500">Try a different search query</p>
+        <div className="mt-4">
+          <EmptyState title="No matches" description="Try a different search query." />
         </div>
       )}
     </>

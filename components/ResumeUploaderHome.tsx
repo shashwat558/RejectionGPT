@@ -5,11 +5,15 @@ import { motion} from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { CheckCircle, FileText, Briefcase, Star, Coffee, Zap } from 'lucide-react';
 import { useAuth } from '@/stores/useAuth';
+import LoadingButton from '@/components/ui/loading-button';
+import ErrorState from '@/components/ui/error-state';
+import { uploadAndAnalyze } from '@/lib/services/resume.client';
 
 const ResumeUploaderHome = () => {
     const [resume, setResume] = useState<File | null>(null);
     const [jobDesc, setJobDesc] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const router = useRouter()
     const {user} = useAuth();
     const ref = useRef<HTMLVideoElement>(null);
@@ -24,36 +28,19 @@ const ResumeUploaderHome = () => {
         e.preventDefault();
         if(!user){
             router.push("/login")
+            return
         }
         if (!resume) return;
+        setErrorMessage(null);
 
         try {
             setIsLoading(true);
-
-            const data = new FormData();
-            data.set("resume", resume);
-            data.set("jobDesc", jobDesc || "");
-
-            const response = await fetch("/api/analyzer", {
-            method: "POST",
-            body: data,
-            });
-
-            setIsLoading(false);
-
-            if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText);
-            }
-
-            const result = await response.json();
-            const analysisId = result.analysisId;
-
-            if (!analysisId) throw new Error("Missing analysisId in response");
-
+            const { analysisId } = await uploadAndAnalyze(resume, jobDesc || "")
             router.push(`/analytics/${analysisId}`);
         } catch (error) {
             console.error("Error during analysis upload:", error);
+            setErrorMessage("We could not process your resume. Please try again.");
+        } finally {
             setIsLoading(false);
         }
 };
@@ -189,28 +176,22 @@ const ResumeUploaderHome = () => {
                             />
                         </div>
                         
-                        <motion.button
-                            
-                            whileHover={{
-                                scale: 1.03,
-                                backgroundColor: "#555",
-                            }}
-                            disabled={isLoading}
-                            whileTap={{ scale: 0.98 }}
-                            className='w-full py-3 px-6 bg-[#424141] text-gray-300 font-medium rounded-lg transition-colors duration-300 shadow-md cursor-pointer flex items-center justify-center gap-2'
-                            onClick={handleSubmit}
-                        >
-                            {isLoading ? (
-                                <div className="relative flex items-center justify-center">
-                                    <div className='w-6 h-6 border-2 border-gray-900 border-t-gray-600 rounded-full animate-spin'
-                                        style={{ animationDuration: '0.8s' }} />
-                                </div>
-                            ) : (
-                                <>
-                                    Make Me Employable <Zap className="w-4 h-4 ml-1" />
-                                </>
-                            )}
-                        </motion.button>
+                                                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full">
+                                                    <LoadingButton
+                                                        isLoading={isLoading}
+                                                        loadingText="Analyzing..."
+                                                        className="w-full py-3 px-6 bg-[#424141] hover:bg-[#555] text-gray-300 font-medium rounded-lg shadow-md"
+                                                        onClick={handleSubmit}
+                                                        disabled={!resume}
+                                                    >
+                                                        Make Me Employable <Zap className="w-4 h-4 ml-1" />
+                                                    </LoadingButton>
+                                                </motion.div>
+                                                {errorMessage && (
+                                                    <div className="mt-4">
+                                                        <ErrorState message={errorMessage} />
+                                                    </div>
+                                                )}
                     </div>
                 </div>
             </div>

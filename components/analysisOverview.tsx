@@ -3,10 +3,10 @@
 // import { useState } from "react"
 import { useMemo } from "react"
 import { TrendingUp, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
+import type { AnalysisSummary } from "@/lib/types/analytics"
 
 interface AnalyticsOverviewProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any[]
+  data: AnalysisSummary[]
 }
 
 export default function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
