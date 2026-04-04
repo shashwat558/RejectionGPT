@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { Suspense } from "react"
-
 import { FileText, Plus, BarChart3 } from "lucide-react"
 import AnalyticsOverview from "@/components/analysisOverview"
 import AnalyticsSearchList from "@/components/AnalyticsSearchList"
@@ -10,8 +9,6 @@ import { redirect } from "next/navigation"
 import AnalyticsOverviewSkeleton from "./AnalyticsOverviewSkeleton"
 import AnalyticsSearchListSkeleton from "./AnalyticsSearchListSkeleton"
 import { getAllFeedbacks } from "@/lib/actions/actions"
-
-
 
 export const revalidate = 60
 
@@ -26,7 +23,7 @@ async function AnalyticsContent() {
 
       {/* Recent Analyses with Search */}
       <Suspense fallback={<AnalyticsSearchListSkeleton />}>
-        <div className="mt-10">
+        <div className="mt-12">
           {feedbackData.length > 0 ? (
             <AnalyticsSearchList data={feedbackData} />
           ) : (
@@ -37,7 +34,7 @@ async function AnalyticsContent() {
               action={
                 <Link
                   href="/"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#333] hover:bg-[#444] text-gray-300 rounded-md text-sm transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Create Your First Analysis</span>
@@ -59,23 +56,20 @@ export default async function AnalyticsDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen ">
-      <div className="absolute top-0 left-0 w-full h-[300px] pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 py-10 relative z-10">
-       
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pt-24">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#333] text-gray-300 text-xs font-medium mb-2">
-              <BarChart3 className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white border border-gray-200 text-black text-xs font-medium mb-3 shadow-sm">
+              <BarChart3 className="w-4 h-4 mr-1.5 text-gray-500" />
               <span>Resume Analytics</span>
             </div>
-            <h1 className="text-3xl md:text-4xl text-gray-300 font-bold">Your Resume Performance</h1>
+            <h1 className="text-3xl md:text-4xl text-black font-bold tracking-tight">Your Resume Performance</h1>
           </div>
 
           <Link
             href="/"
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333] hover:bg-[#444] text-gray-300 rounded-md text-sm transition-colors self-start md:self-center"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors self-start md:self-center shadow-sm"
           >
             <Plus className="w-4 h-4" />
             <span>New Analysis</span>

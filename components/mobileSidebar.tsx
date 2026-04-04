@@ -21,7 +21,7 @@ export default function MobileSidebarToggle({ feedbacks, currentId }: MobileSide
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="xl:hidden fixed top-5 left-4 z-40 p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors backdrop-blur-md"
+        className="xl:hidden fixed top-5 left-4 z-40 p-2.5 rounded-xl bg-white border border-gray-200 text-black shadow-sm hover:bg-gray-50 transition-colors"
       >
         <Menu className="w-5 h-5" />
       </button>
@@ -34,7 +34,7 @@ export default function MobileSidebarToggle({ feedbacks, currentId }: MobileSide
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="xl:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              className="xl:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
             />
             
             <motion.div 
@@ -42,12 +42,12 @@ export default function MobileSidebarToggle({ feedbacks, currentId }: MobileSide
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="xl:hidden fixed left-0 top-0 h-full w-80 z-50 bg-[#09090b] shadow-2xl border-r border-[#1a1a1a] overflow-hidden"
+              className="xl:hidden fixed left-0 top-0 h-full w-80 z-50 bg-gray-50/90 backdrop-blur shadow-2xl border-r border-gray-200 overflow-hidden"
             >
               <div className="absolute right-4 top-4 z-50 pointer-events-auto">
                 <button 
                   onClick={() => setIsOpen(false)} 
-                  className="p-2 rounded-lg bg-black/50 hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-white/5 backdrop-blur-sm"
+                  className="p-2 rounded-lg bg-white hover:bg-gray-50 text-gray-500 hover:text-black transition-colors border border-gray-200 shadow-sm"
                 >
                   <X className="w-5 h-5" />
                 </button>

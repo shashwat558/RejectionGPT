@@ -320,23 +320,23 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
   }
 
   return (
-    <div className="my-container flex flex-col h-full w-full max-w-5xl">
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur px-5 py-4">
+    <div className="flex flex-col h-full w-full max-w-5xl mx-auto bg-white border-l border-r border-gray-200">
+      <div className="border-b border-gray-200 bg-white px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <Link href="/analytics" className="flex items-center gap-2 text-gray-400 hover:text-gray-200">
+          <Link href="/analytics" className="flex items-center gap-2 font-medium text-gray-500 hover:text-black transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Back to Analysis
+            Back
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <LoadingButton
               onClick={handleShare}
               isLoading={isSharing}
               loadingText="Creating..."
-              className="px-3 py-2 rounded-md border border-white/10 text-gray-200 text-xs hover:bg-white/10"
+              className="px-4 py-2 rounded-lg border border-gray-200 text-black text-sm font-medium hover:bg-gray-50 shadow-sm"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              {linkCopied ? "Link Copied" : "Share"}
+              <Share2 className="w-4 h-4" />
+              {linkCopied ? "Copied!" : "Share"}
             </LoadingButton>
 
             {!isCalendarConnected ? (
@@ -345,7 +345,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
                 onClick={() => {
                   router.push("/api/calender/connect")
                 }}
-                className="bg-white text-black border-white hover:bg-gray-200 transition-colors"
+                className="bg-black text-white hover:bg-gray-800 transition-colors shadow-sm"
               >
                 Connect Calendar
               </Button>
@@ -354,7 +354,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
                 onClick={() => {
                   router.push("/api/calender/connect")
                 }}
-                className="flex items-center gap-2 border border-white/20 px-3 py-2 rounded-md text-xs bg-transparent text-gray-200"
+                className="flex items-center gap-2 border border-green-200 bg-green-50 px-3 py-2 rounded-lg text-sm text-green-700 font-medium"
               >
                 Calendar Connected <Check className="w-4 h-4" />
               </button>
@@ -362,22 +362,22 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-4">
+        <div className="mt-6 flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-100">
+              <h1 className="text-2xl font-bold tracking-tight text-black">
                 {conversation?.title || "Untitled chat"}
               </h1>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500 mt-1">
                 Keep memory, tags, and pinned messages aligned to this conversation.
               </p>
             </div>
             <button
               onClick={() => setShowMemory((prev) => !prev)}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-white/10 text-gray-200 text-xs hover:bg-white/10"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-black font-medium text-sm hover:bg-gray-50 shadow-sm transition-colors"
             >
               Memory
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showMemory ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-4 h-4 transition-transform ${showMemory ? "rotate-180" : ""}`} />
             </button>
           </div>
 
@@ -385,18 +385,18 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-2 text-xs text-gray-200 border border-white/10 rounded-full px-3 py-1"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-black bg-gray-100 rounded-lg px-3 py-1.5"
               >
-                <Tag className="w-3.5 h-3.5" />
+                <Tag className="w-3.5 h-3.5 text-gray-400" />
                 {tag}
-                <button onClick={() => removeTag(conversationId, tag)} className="text-gray-400 hover:text-white">
+                <button onClick={() => removeTag(conversationId, tag)} className="text-gray-400 hover:text-red-500 ml-1">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             ))}
 
-            <div className="flex items-center gap-2 border border-dashed border-white/10 rounded-full px-3 py-1">
-              <Tag className="w-3.5 h-3.5 text-gray-500" />
+            <div className="flex items-center gap-2 border border-dashed border-gray-300 rounded-lg px-3 py-1.5">
+              <Tag className="w-3.5 h-3.5 text-gray-400" />
               <input
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
@@ -407,26 +407,26 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
                   }
                 }}
                 placeholder="Add tag"
-                className="bg-transparent text-xs text-gray-200 placeholder-gray-500 focus:outline-none"
+                className="bg-transparent text-sm w-20 text-black placeholder-gray-400 focus:outline-none"
               />
             </div>
           </div>
 
           {showMemory && (
-            <div className="border border-white/10 rounded-xl bg-black/20 p-3">
-              <label className="text-xs text-gray-400">Conversation memory (auto-injected into prompts)</label>
+            <div className="border border-gray-200 rounded-xl bg-gray-50 p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Conversation Memory</label>
               <textarea
                 value={memory}
                 onChange={(e) => setMemory(conversationId, e.target.value)}
                 placeholder="Examples: preferred tone, target role, constraints, key objectives"
-                className="mt-2 w-full min-h-[80px] bg-transparent text-sm text-gray-200 placeholder-gray-500 focus:outline-none"
+                className="mt-2 w-full min-h-[80px] bg-transparent text-sm text-black placeholder-gray-400 focus:outline-none resize-y"
               />
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-5">
+      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gray-50/50">
         {messages.map((message) => (
           <MessageBubble
             key={message.id}
@@ -443,21 +443,21 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-white/10 bg-black/20">
+      <div className="border-t border-gray-200 bg-white">
         <QuickActions onActionClick={handleQuickAction} />
       </div>
 
       {errorMessage && (
-        <div className="px-5 pt-4">
+        <div className="px-6 pt-4 bg-white">
           <ErrorState message={errorMessage} />
         </div>
       )}
 
-      <div className="px-5 py-4 border-t border-white/10 bg-black/30">
-        <div className="relative">
-          <div className="flex items-end gap-3 bg-black/40 border border-white/10 rounded-2xl p-3">
-            <button className="p-2 rounded-md hover:bg-white/10 text-gray-400 hover:text-gray-200 transition-colors">
-              <Paperclip className="w-4 h-4" />
+      <div className="px-6 py-5 bg-white">
+        <div className="max-w-4xl mx-auto relative mt-2">
+          <div className="flex items-end gap-3 bg-white border border-gray-300 shadow-sm rounded-2xl p-2.5 focus-within:ring-2 focus-within:ring-black focus-within:border-black transition-all">
+            <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-colors shrink-0">
+              <Paperclip className="w-5 h-5" />
             </button>
 
             <textarea
@@ -466,11 +466,11 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything about resumes, job search, or interview prep..."
-              className="flex-1 bg-transparent text-gray-200 placeholder-gray-500 resize-none focus:outline-none min-h-[20px] max-h-32"
+              className="flex-1 bg-transparent text-black placeholder-gray-400 resize-none py-2 focus:outline-none min-h-[40px] max-h-48"
               rows={1}
               style={{
                 height: "auto",
-                minHeight: "20px",
+                minHeight: "40px",
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement
@@ -479,33 +479,33 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
               }}
             />
 
-            <div className="flex items-center gap-2">
-              <button className="p-2 rounded-md hover:bg-white/10 text-gray-400 hover:text-gray-200 transition-colors">
-                <Mic className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-black transition-colors">
+                <Mic className="w-5 h-5" />
               </button>
 
               {isLoading ? (
                 <button
                   onClick={handleStop}
-                  className="p-2 rounded-md border border-white/10 hover:bg-white/10 text-gray-200 transition-colors"
+                  className="p-2 rounded-lg bg-gray-100 text-black hover:bg-gray-200 transition-colors"
                 >
-                  <StopCircle className="w-4 h-4" />
+                  <StopCircle className="w-5 h-5" />
                 </button>
               ) : (
                 <button
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="p-2 rounded-md bg-white text-black hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-5 h-5" />
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex justify-center mt-2">
-          <p className="text-gray-500 text-xs">AI can make mistakes. Consider checking important information.</p>
+        <div className="flex justify-center mt-3">
+          <p className="text-gray-400 text-xs">AI can make mistakes. Consider checking important information.</p>
         </div>
       </div>
     </div>

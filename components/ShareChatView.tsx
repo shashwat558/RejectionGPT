@@ -46,7 +46,7 @@ export default function ShareChatView({
         ))}
       </div>
 
-      <div className="mt-6 rounded-xl border border-white/10 bg-black/40 p-4 text-xs text-gray-400">
+      <div className="mt-6 rounded-xl border border-white/10 bg-black/40 p-4 text-xs text-gray-600">
         This is a read-only snapshot. Sign in to continue the conversation.
       </div>
     </div>

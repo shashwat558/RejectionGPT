@@ -26,8 +26,8 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
 
   if (!analysisData) {
     return (
-      <div className="flex justify-center items-center h-screen bg-[#1e1e1e]">
-        <div className="w-10 h-10 border-4 border-gray-700 border-t-gray-400 rounded-full animate-spin"></div>
+      <div className="flex justify-center items-center h-screen bg-gray-50/50">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
       </div>
     )
   }

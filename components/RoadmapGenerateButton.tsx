@@ -42,12 +42,12 @@ export default function RoadmapGenerateButton({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <Select value={experienceLevel} onValueChange={(value) => setExperienceLevel(value as ExperienceLevel)}>
-        <SelectTrigger>
+        <SelectTrigger className="bg-white border-gray-200 text-black">
           <SelectValue placeholder="Select experience level" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white border-gray-200">
           <SelectItem value={ExperienceLevel.BEGINNER}>Beginner</SelectItem>
           <SelectItem value={ExperienceLevel.INTERMEDIATE}>Intermediate</SelectItem>
           <SelectItem value={ExperienceLevel.EXPERT}>Expert</SelectItem>
@@ -56,7 +56,7 @@ export default function RoadmapGenerateButton({
     <button
       onClick={onClick}
       disabled={loading}
-      className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[#333] hover:bg-[#444] disabled:opacity-60 text-gray-300 rounded-md text-sm transition-colors"
+      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm disabled:opacity-60 text-black rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
     >
       {loading ? "Generating…" : "Get Roadmap"}
     </button>

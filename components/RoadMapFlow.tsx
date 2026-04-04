@@ -72,13 +72,13 @@ export default function RoadmapFlow({ roadmapData, roadmapId }: { roadmapData: R
   }, [completed, roadmapData, roadmapId, toggleNode]);
 
   return (
-    <div className="w-full h-[85vh] bg-[#0f0f0f] relative">
-      <div className="absolute right-4 top-4 z-10 flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs text-gray-200">
+    <div className="w-full h-[85vh] bg-gray-50/50 relative border-b border-gray-200">
+      <div className="absolute right-4 top-4 z-10 flex items-center gap-3 rounded-full border border-gray-200 bg-white shadow-sm px-4 py-2 text-xs font-medium text-black">
         <span>{completed.length}/{totalNodes} complete</span>
-        <span className="text-gray-500">{progress}%</span>
+        <span className="text-gray-500 font-bold">{progress}%</span>
         <button
           onClick={() => resetRoadmap(roadmapId)}
-          className="rounded-full border border-white/10 px-2 py-1 text-[11px] text-gray-300 hover:bg-white/10"
+          className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] font-semibold text-black hover:bg-gray-50 transition-colors ml-1"
         >
           Reset
         </button>
@@ -92,20 +92,20 @@ export default function RoadmapFlow({ roadmapData, roadmapId }: { roadmapData: R
         defaultEdgeOptions={{
           type: "smoothstep",
           animated: true,
-          style: { stroke: "#4a90e2", strokeWidth: 2 },
+          style: { stroke: "#000", strokeWidth: 2 },
         }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+        <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#e5e7eb" />
         <Controls 
-          className="bg-[#252525] border border-[#383838] rounded-lg"
+          className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
           showZoom={true}
           showFitView={true}
           showInteractive={false}
         />
         <MiniMap
-          nodeColor="#4a90e2"
-          maskColor="rgba(0, 0, 0, 0.6)"
-          className="bg-[#252525] border border-[#383838] rounded-lg"
+          nodeColor="#000"
+          maskColor="rgba(255, 255, 255, 0.7)"
+          className="bg-white border border-gray-200 rounded-lg shadow-sm"
         />
       </ReactFlow>
     </div>

@@ -25,9 +25,9 @@ const ChatRedirectButton = ({descId, resumeId}: {descId: string, resumeId: strin
       onClick={handleClick}
       isLoading={isLoading}
       loadingText="Starting"
-      className="px-3 py-2 rounded-md bg-[#333] hover:bg-[#444] text-gray-200 text-sm border border-[#3a3a3a]"
+      className="px-4 py-2 rounded-lg bg-white hover:bg-gray-50 text-black font-medium text-sm border border-gray-200 shadow-sm transition-colors flex items-center justify-center"
     >
-      <MessageSquare className="w-4 h-4 mr-1" />
+      <MessageSquare className="w-4 h-4 mr-2" />
       Chat with me 
     </LoadingButton>
   )

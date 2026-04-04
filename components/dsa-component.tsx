@@ -65,52 +65,52 @@ export default function DSASuggestionsPage({ analysisId}: DSAPageProps) {
 
   if (loading) {
     return (
-      <div className="py-16 flex flex-col items-center justify-center text-gray-400">
-        <div className="w-10 h-10 border-4 border-gray-700 border-t-gray-400 rounded-full animate-spin mb-3" />
-        <p className="text-sm">Fetching your tailored practice set...</p>
+      <div className="py-16 flex flex-col items-center justify-center text-gray-500">
+        <div className="w-10 h-10 border-4 border-gray-100 border-t-black rounded-full animate-spin mb-4" />
+        <p className="text-sm font-medium">Fetching your tailored practice set...</p>
       </div>
     )
   }
 
   if (suggestions.length === 0) {
-    return <div className="py-10 text-center text-muted-foreground">No DSA suggestions available yet.</div>
+    return <div className="py-10 text-center text-gray-500 font-medium">No DSA suggestions available yet.</div>
   }
 
   // Difficulty color mapping
   const difficultyClass = (d: string) => {
     const v = d.toLowerCase()
-    if (v === 'easy') return 'bg-green-500/15 text-green-400 border-green-500/30'
-    if (v === 'hard') return 'bg-red-500/15 text-red-400 border-red-500/30'
-    return 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30'
+    if (v === 'easy') return 'bg-green-50 text-green-700 border-green-200'
+    if (v === 'hard') return 'bg-red-50 text-red-700 border-red-200'
+    return 'bg-yellow-50 text-yellow-700 border-yellow-200'
   }
 
   return (
     <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
       {suggestions.map((q, index) => (
-        <Card key={index} className="transition-colors bg-[#252525] text-gray-300 border border-[#2f2f2f] hover:border-[#3a3a3a]">
-          <CardHeader className="space-y-3">
-            <CardTitle className="text-pretty text-base leading-6">{q.title}</CardTitle>
-            <div className="items-center gap-2 flex-wrap">
+        <Card key={index} className="transition-all bg-white text-black border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md rounded-xl">
+          <CardHeader className="space-y-3 pb-4">
+            <CardTitle className="text-pretty text-lg font-semibold leading-tight">{q.title}</CardTitle>
+            <div className="items-center gap-2 flex flex-wrap">
               
-              <div className={`rounded-full max-w-fit px-2.5 py-0.5 text-xs border ${difficultyClass(q.difficulty)}`}>
+              <div className={`rounded-md max-w-fit px-2.5 py-0.5 text-xs font-bold border ${difficultyClass(q.difficulty)}`}>
                 {q.difficulty}
               </div>
 
               {q.topic.split(',').map((t, i) => (
-                <Badge key={i} variant="outline" className="rounded-full px-2.5 py-0.5 text-xs text-gray-400 border-[#3a3a3a]">
+                <Badge key={i} variant="outline" className="rounded-md px-2.5 py-0.5 text-xs font-medium text-gray-600 bg-gray-50 border-gray-200">
                   {t.trim()}
                 </Badge>
               ))}
             </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-400">
-              {"Reason: "}
-              <span className="text-gray-300">{q.reason_suggested}</span>
+          <CardContent className="pb-4">
+            <p className="text-sm text-gray-600 leading-relaxed">
+              <span className="font-semibold text-black block mb-1">Reason:</span>
+              {q.reason_suggested}
             </p>
           </CardContent>
-          <CardFooter>
-            <Button asChild variant="secondary" className="w-full justify-center gap-2">
+          <CardFooter className="pt-2 pb-5">
+            <Button asChild variant="secondary" className="w-full justify-center gap-2 bg-gray-50 hover:bg-gray-100 text-black border border-gray-200 transition-colors shadow-sm font-medium rounded-lg">
               <a
                 href={q.link}
                 target="_blank"
@@ -118,7 +118,7 @@ export default function DSASuggestionsPage({ analysisId}: DSAPageProps) {
                 aria-label={`Solve ${q.title} on external site`}
               >
                 Solve on LeetCode
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4 text-gray-500" />
               </a>
             </Button>
           </CardFooter>

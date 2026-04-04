@@ -41,7 +41,7 @@ export default function DSAGenerateButton({
     <button
       onClick={onClick}
       disabled={loading}
-      className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-[#333] hover:bg-[#444] disabled:opacity-60 text-gray-300 rounded-md text-sm transition-colors"
+      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm disabled:opacity-60 text-black rounded-lg text-sm font-medium transition-colors"
     >
       {loading ? "Generating…" : "Get DSA Questions"}
     </button>

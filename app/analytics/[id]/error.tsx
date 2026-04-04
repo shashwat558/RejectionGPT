@@ -4,7 +4,7 @@ import ErrorState from "@/components/ui/error-state"
 
 export default function Error({ reset }: { reset: () => void }) {
   return (
-    <div className="min-h-screen bg-[#09090b] px-4 py-10">
+    <div className="min-h-screen bg-gray-50/50 px-4 py-10">
       <div className="max-w-2xl mx-auto">
         <ErrorState
           title="Unable to load analysis"
@@ -12,7 +12,7 @@ export default function Error({ reset }: { reset: () => void }) {
           action={
             <button
               onClick={() => reset()}
-              className="px-4 py-2 rounded-md bg-white/10 text-gray-200 hover:bg-white/20 transition-colors"
+              className="px-4 py-2 rounded-md bg-white border border-gray-200 shadow-sm text-black hover:bg-gray-50 transition-colors font-medium text-sm"
             >
               Try again
             </button>

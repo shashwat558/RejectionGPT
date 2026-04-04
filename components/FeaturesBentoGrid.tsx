@@ -1,161 +1,102 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+
 
 export default function FeaturesBentoGrid() {
-  const [enabled, setEnabled] = useState(false);
+  // const [enabled, setEnabled] = useState(false);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-10">
-      <div className="mb-6 md:mb-8 text-center">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
-          Powerful Features
-        </h2>
-        <p className="text-gray-400 text-sm sm:text-base">
-          Everything you need to land your dream job
-        </p>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl md:text-5xl font-bold text-black tracking-tight leading-tight mb-4">
+            Everything you need to <span className="text-gray-400">ace the interview</span>
+          </h2>
+        </div>
       </div>
 
-      <div className="w-full p-3 sm:p-4 md:p-3 flex flex-col md:flex-row gap-4 md:gap-0 bg-[#131212] border border-[#383838] rounded-lg">
-      
-        <div className="w-full md:w-1/3 md:h-[700px] flex flex-col justify-between items-center gap-4 md:gap-5 p-2 md:p-2">
-          <div className="w-full bg-[radial-gradient(circle_at_top_left,#4d4d4d,#171717)] rounded-lg border border-[#383838] md:h-[48%]">
-            <div className="w-full h-full flex flex-col justify-center items-center gap-3 md:gap-4 p-4 sm:p-5 md:p-5 text-center">
-              <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl font-semibold text-white mb-1">
-                Resume Analysis
-              </h3>
-              <p className="text-gray-400 text-sm sm:text-base md:text-sm lg:text-base leading-relaxed px-1">
-                Get your resume analyzed against any job description. Receive a
-                detailed compatibility score and AI-powered suggestions to stand
-                out to recruiters.
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full md:h-[48%] flex flex-col justify-between items-center gap-3 md:gap-3 rounded-lg">
-            <div className="w-full bg-[radial-gradient(circle_at_bottom_center,#575757,#181818)] rounded-lg border border-[#383838] md:h-[65%]">
-              <div className="w-full h-full flex flex-col justify-center items-center gap-2 md:gap-3 p-4 sm:p-5 md:p-5 text-center">
-                <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl font-semibold text-white mb-1">
-                  Mock Interview Assistant
-                </h3>
-                <p className="text-gray-400 text-sm sm:text-base md:text-sm lg:text-base leading-relaxed">
-                  Simulate real-world interviews with personalized questions.
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full bg-[radial-gradient(circle_at_bottom_center,#5a5a5a,#181818)] rounded-lg border border-[#383838] md:h-[32%]">
-              <div className="w-full h-full flex flex-col items-center justify-center gap-1 md:gap-2 text-center p-3 sm:p-4 md:p-3">
-                <h3 className="text-lg sm:text-xl md:text-lg lg:text-xl font-semibold text-white mb-1">
-                  Skill Tracker
-                </h3>
-                <p className="text-gray-400 text-xs sm:text-sm px-2">
-                  Track your skills and progress with personalized learning paths.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-       
-        <div className="w-full md:w-1/2 md:h-[700px] relative flex flex-col p-2 justify-between items-center gap-4 md:gap-3">
-          <div className="w-full bg-[radial-gradient(circle_at_bottom_center,#5b5050,#241e1e)] rounded-lg border border-[#383838] md:h-[48%] p-5 sm:p-6 md:p-5 text-center">
-            <div className="w-full h-full flex flex-col justify-center items-center gap-3 md:gap-3">
-              <h3 className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold text-gray-300 uppercase tracking-wider mb-1">
-                RejectionGPT
-              </h3>
-              <h1 className="text-2xl sm:text-3xl md:text-2xl lg:text-4xl xl:text-5xl font-extrabold text-white leading-tight">
-                Let&apos;s Get You Hired
-              </h1>
-              <p className="text-gray-400 text-sm sm:text-base md:text-sm lg:text-base max-w-md mt-2 leading-relaxed">
-                Turn rejections into learning — get feedback, tips, and a
-                confidence boost from your personal AI coach.
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full md:h-[48%] flex flex-col sm:flex-row justify-between items-stretch gap-3 md:gap-3 rounded-lg">
-            <div className="w-full sm:w-1/2 md:h-full bg-[radial-gradient(circle_at_top_right,#606060,#141414)] rounded-lg border border-[#383838] p-4 sm:p-3 text-center flex flex-col items-center justify-center">
-              <h3 className="text-lg sm:text-xl md:text-xl lg:text-2xl font-semibold text-white mb-2">
-                Multiturn Chatbot
-              </h3>
-              <p className="text-gray-400 text-sm sm:text-base md:text-sm lg:text-base leading-relaxed">
-                A smart conversation partner that remembers context and performs
-                live web searches to keep responses fresh and accurate.
-              </p>
-            </div>
-            <div className="w-full sm:w-1/2 md:h-full bg-[radial-gradient(circle_at_top_left,#666,#181818)] rounded-lg border border-[#383838] flex items-center justify-center text-gray-400 text-base sm:text-lg md:text-base font-semibold p-4">
-              Coming Soon
-            </div>
-          </div>
-
-          <div className="hidden md:flex absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 items-center justify-center bg-[#131212] rounded-[40px] pointer-events-none">
-            <div className="border-gray-600 w-[80%] h-[80%] rounded-[25px] border-[1px] p-[1px]">                  
-            <div className="bg-[#222121] w-full h-full rounded-[25px] border-[1px] border-[#383838] border-t-2 border-l-2 border-r-2">
-                <Image src="/logo.svg" alt="success" width={500} height={500} className="w-full h-full object-cover" />
-            </div> 
-            </div>                   
-          </div>
-        </div>
-        <div className="w-full md:w-1/3 md:h-[700px] flex flex-col md:flex-col-reverse justify-between items-center gap-4 md:gap-3 p-2 md:p-2">
-          <div className="w-full bg-[radial-gradient(circle_at_bottom_right,#4e4e4e,#181818)] rounded-lg border border-[#383838] md:h-[48%] flex flex-col justify-center items-center text-center p-4 sm:p-5 md:p-4">
-            <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl font-semibold text-white mb-2">
-              Resume-based AI Chat Assistant
+      <div className="mt-12 md:mt-20 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
+        
+        {/* Deep Analysis Card */}
+        <div className="col-span-1 md:col-span-1 bg-white border-2 border-black rounded-3xl p-8 flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[4px] hover:translate-x-[4px] transition-all duration-300 group">
+          <div>
+            <h3 className="text-xl font-bold text-black mb-2 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-black block"></span>
+              Deep Analysis
             </h3>
-            <p className="text-gray-400 text-sm sm:text-base md:text-sm lg:text-base leading-relaxed">
-              Chat with your own resume. Ask about strengths, weaknesses, and suggestions directly powered by AI. 
+            <p className="text-gray-600 font-medium text-sm leading-relaxed">
+              Get an instant score on how well your resume matches the job description, built by reverse-engineering ATS systems.
+            </p>
+          </div>
+          <div className="w-full h-32 mt-6 rounded-xl bg-gray-50 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center group-hover:scale-[1.02] transition-transform">
+            <div className="w-16 h-16 rounded-full bg-white shadow-sm border-2 border-black flex items-center justify-center">
+              <div className="text-2xl font-bold text-black">94<span className="text-sm font-normal text-gray-500">%</span></div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Mock Interview Card */}
+        <div className="col-span-1 md:col-span-2 bg-white border-2 border-black rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden group shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[4px] hover:translate-x-[4px] transition-all duration-300">
+          <div className="relative z-10 max-w-md">
+            <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-xs font-bold text-black mb-4">
+              AI Powered
+            </div>
+            <h3 className="text-3xl font-bold text-black mb-3 leading-tight tracking-tight">
+              A personal interview coach in your pocket
+            </h3>
+            <p className="text-gray-600 font-medium text-base mb-8">
+              Say goodbye to generic advice. Our AI reads your resume and the job description to mock-interview you like a real hiring manager.
             </p>
           </div>
 
-          <div className="w-full md:h-[48%] flex flex-col justify-between items-center gap-3 md:gap-3">
-            <div className="w-full bg-[radial-gradient(circle_at_bottom_center,#595959,#1b1b1b)] rounded-lg border border-[#383838] md:h-[35%]">
-              <div className="w-full h-full flex flex-col sm:flex-row justify-around items-center p-3 sm:p-4 md:p-3 gap-3 sm:gap-2">
-                <p className="text-white text-base sm:text-lg md:text-base lg:text-lg font-semibold">
-                  Enable Success
-                </p>
-                <div
-                  onClick={() => setEnabled(!enabled)}
-                  className={`relative w-24 sm:w-28 md:w-24 h-12 sm:h-14 md:h-12 rounded-full cursor-pointer transition-all duration-300 ${
-                    enabled
-                      ? "bg-gradient-to-r from-[#3a2b5e] to-[#1b1830]"
-                      : "bg-gradient-to-r from-[#1b1830] to-[#0f0f1a]"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 left-1 h-10 w-10 sm:h-12 sm:w-12 md:h-10 md:w-10 rounded-full transition-all duration-300 flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.1)] ${
-                      enabled
-                        ? "translate-x-12 sm:translate-x-14 md:translate-x-12 bg-gradient-to-br from-[#ffb169] to-[#ff8653]"
-                        : "translate-x-0 bg-gradient-to-br from-[#3a3a3a] to-[#222]"
-                    }`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="white"
-                      className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m12.02-6.36l-.7.7m-6.62 6.62l-.7.7m9.9 0l-.7-.7m-6.62-6.62l-.7-.7"
-                      />
-                    </svg>
-                  </div>
-                </div>
+          <div className="absolute right-0 bottom-0 top-0 w-1/2 hidden md:flex items-end justify-end pointer-events-none p-6">
+            <div className="w-full h-4/5 bg-white rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-y-8 translate-x-8 group-hover:translate-x-6 group-hover:translate-y-6 transition-transform duration-500 p-4">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-black flex-shrink-0"></div>
+                <div className="bg-gray-100 border border-gray-200 rounded-2xl rounded-tl-sm p-3 text-sm font-medium text-black">Tell me about a time you handled a difficult client.</div>
+              </div>
+              <div className="flex items-start gap-3 justify-end">
+                <div className="bg-black text-white rounded-2xl rounded-tr-sm p-3 text-sm font-medium border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">In my previous role, I mediated...</div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="w-full bg-[radial-gradient(circle_at_bottom_center,#5a5a5a,#1a1a1a)] rounded-lg border border-[#383838] md:h-[62%] p-4 sm:p-5 md:p-5 text-center">
-              <h3 className="text-xl sm:text-2xl md:text-xl lg:text-2xl font-semibold text-white mb-2">
-                DSA Problem Recommender
-              </h3>
-              <p className="text-gray-400 text-sm sm:text-base md:text-sm lg:text-base leading-relaxed">
-                Get custom DSA challenges based on your resume&apos;s experience
-                level and target role to sharpen your technical edge.
-              </p>
+        {/* DSA Practice Card */}
+        <div className="col-span-1 md:col-span-2 bg-white border-2 border-black rounded-3xl p-8 flex items-center gap-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[4px] hover:translate-x-[4px] transition-all duration-300 overflow-hidden group">
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-black mb-2 flex items-center gap-2">
+              Tailored DSA Practice
+            </h3>
+            <p className="text-gray-600 font-medium text-sm leading-relaxed mb-6">
+              Stop grinding random LeetCode questions. We recommend specific problems based on your target company and role.
+            </p>
+            <button className="text-sm font-bold text-black underline underline-offset-4 hover:opacity-70 transition-opacity">Explore problems</button>
+          </div>
+          <div className="hidden sm:flex flex-1 justify-end">
+            <div className="w-48 h-48 rounded-full border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-gray-50 flex items-center justify-center p-4 relative group-hover:rotate-12 transition-transform duration-700">
+              <div className="w-full h-full border border-dashed border-gray-300 rounded-full flex items-center justify-center animate-[spin_30s_linear_infinite]">
+                <div className="w-3/4 h-3/4 bg-white rounded-full border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Banner inside Grid */}
+        <div className="col-span-1 md:col-span-1 bg-black rounded-3xl p-8 flex flex-col justify-between group overflow-hidden relative shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)]">
+          <div className="relative z-10">
+            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Ready to start?</h3>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Join thousands of professionals landing their dream roles faster.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between mt-auto">
+            <div className="text-white text-sm font-medium">Create account</div>
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center cursor-pointer border-2 border-transparent shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </div>
           </div>
         </div>

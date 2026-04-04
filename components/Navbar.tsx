@@ -1,175 +1,157 @@
 "use client"
 
-import { ArrowRight, ChevronDown } from 'lucide-react'
-
-
+import { ArrowRight, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
-import {AnimatePresence, motion} from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from '@/stores/useAuth'
 import Image from 'next/image'
 import { signOut } from '@/app/actions'
 import { useRouter } from 'next/navigation';
 
-
-
 const navLinks = [
-    {
-        name: "Analytics",
-        link: "/analytics"
-    },
-    {
-        name: "Practice",
-        link: "/practice"
-    },
-    {
-      name: "Diagram(Beta)",
-      link: "/diagram"
-    }
-    
+  {
+    name: "Analytics",
+    link: "/analytics"
+  },
+  {
+    name: "Practice",
+    link: "/practice"
+  },
+  {
+    name: "Diagram(Beta)",
+    link: "/diagram"
+  }
 ]
 
-
-
 const Navbar = () => {
-    const [isHovering, setIsHovering] = useState(false);
-    
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const {user, setUser} = useAuth()
-    const router = useRouter();
-    
+  const [isHovering, setIsHovering] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, setUser } = useAuth()
+  const router = useRouter();
 
-
-   
   return (
-    
     <AnimatePresence>
-         
-        
-        
-    <motion.nav initial={{ y: -15 }}
-        animate={{ y:0 }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
-        className={`w-full  z-50 flex justify-center items-center absolute`}
-        style={{ position: "sticky" }}>
-        {/* Decorative corner elements for the navbar */}
-        
-       
-            
-        <div className='xl:w-2/3 md:p-3 max-sm:p-4  w-full bg-transparent pt-5 relative'>
-        
+      <motion.nav
+        initial={{ y: -15, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full fixed top-0 left-0 z-50 flex justify-center items-center bg-white/80 backdrop-blur-md border-b border-gray-100"
+      >
+        <div className='max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-4'>
+          <div className='flex justify-between items-center'>
+            <div className='flex items-center gap-10'>
+              <Link href={"/"} className="flex items-center gap-2">
+                <span className="text-xl font-bold text-black tracking-tight">RejectionGPT</span>
+              </Link>
 
-      
-    
-
-
-           
-          <div className='flex justify-between items-center bg-transparent'>
-            <div className='flex items-center gap-5 '>
-                
-                <Link href={"/"} className={`text-2xl font-[900] text-center mb-2 text-gray-300`}>RejectionGTP</Link>
-                
-
-                <div className='flex items-center gap-10 ml-5 max-sm:hidden'>
-                    {user && navLinks.map((link, index) => (
-                    <Link prefetch={user ? true : false} href={link.link} key={index} className='text-md  tracking-wide text-gray-300 hover:text-white'>
-                        {link.name}
-                    </Link>
+              <div className='hidden md:flex items-center gap-8'>
+                {user && navLinks.map((link, index) => (
+                  <Link prefetch={user ? true : false} href={link.link} key={index} className='text-sm font-medium text-gray-500 hover:text-black transition-colors'>
+                    {link.name}
+                  </Link>
                 ))}
-                </div>
-
+              </div>
             </div>
-            <button  onClick={() => setIsMenuOpen(true)} className='xl:hidden  cursor-pointer md:hidden'><ChevronDown className='w-7 h-7 text-gray-300'/></button>
-            <div className='flex flex-col items-center gap-3'>
-            
-            <motion.button
-            initial={{ scale: 1 }}
-            whileHover={{
-                scale: 1.05,
-                backgroundColor: '#d1d5db',
-                color: '#1f2937',
-            }}
-            transition={{ type: 'spring', damping: 20 }}
-            className='relative isolate inline-flex items-center justify-center text-base/6 uppercase font-mono tracking-widest shrink-0 focus:outline-none data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500 data-[disabled]:opacity-50 [&>[data-slot=icon]]:-mx-0.5 [&>[data-slot=icon]]:my-0.5 [&>[data-slot=icon]]:shrink-0 [&>[data-slot=icon]]:sm:my-1 px-4 py-2 sm:text-sm [&>[data-slot=icon]]:size-5 [&>[data-slot=icon]]:sm:size-4 gap-x-3 bg-[--btn-bg] [--btn-bg:transparent] [--btn-border:theme(colors.primary/25%)] [--btn-text:theme(colors.primary)] [--btn-hover:theme(colors.secondary/20%)] text-center w-auto p-2 rounded-full border-[0.3px] border-gray-400 shadow-none cursor-pointer '
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            onClick={async () => {
-                    if (user) {
-                      await signOut();
-                      setUser(null);
-                      router.push("/");
-                    } else {
-                      router.push("/login");
-                    }
-                  }}
-            layout
-            >
-            
-            {user && <Image src={user.user_metadata.avatar_url} alt='user_profile_image' width={30} height={30} className='rounded-full object-center' />}
-            <h1 className={`${isHovering? "text-gray-800": "text-gray-300"}`}>{user ? `${user.user_metadata.full_name.split(" ")[0]}`: "Get started"}</h1>
-            <AnimatePresence>
-                {isHovering && (
-                <motion.div
-                    key="arrow"
-                    initial={{ opacity: 0, x: -5, rotate:0 }}
-                    animate={{ opacity: 1, x: 0 , rotate: -35}}
-                    exit={{ opacity: 0, x: -5 }}
-                    transition={{ duration: 0.2 }}
-                    
-                >
-                    <ArrowRight className="w-7 h-6" />
-                </motion.div>
-                )}
-            </AnimatePresence>
-            </motion.button>
-           
-           
+
+            <div className='flex items-center gap-4'>
+              <motion.button
+                whileHover={{ scale: 1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', damping: 20 }}
+                className='hidden md:flex items-center justify-center gap-2 bg-white text-black border-2 border-black px-5 py-2.5 rounded-xl text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] transition-all'
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+                onClick={async () => {
+                  if (user) {
+                    await signOut();
+                    setUser(null);
+                    router.push("/");
+                  } else {
+                    router.push("/login");
+                  }
+                }}
+              >
+                {user && <Image src={user.user_metadata?.avatar_url || ""} alt='user_profile' width={24} height={24} className='rounded-full object-cover' />}
+                <span>{user ? `Sign out` : "Get started"}</span>
+                <AnimatePresence>
+                  {!user && (
+                    <motion.div
+                      key="arrow"
+                      initial={{ x: 0 }}
+                      animate={{ x: isHovering ? 5 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+
+              <button onClick={() => setIsMenuOpen(true)} className='md:hidden p-2 text-gray-600 hover:text-black transition-colors rounded-lg'>
+                <Menu className='w-6 h-6' />
+              </button>
             </div>
-      
-
-
-
-            
           </div>
-          
         </div>
-    </motion.nav>
-    {isMenuOpen && <DropDownMenu onClose={() => setIsMenuOpen(false)}/>}
+      </motion.nav>
+      {isMenuOpen && <DropDownMenu onClose={() => setIsMenuOpen(false)} />}
     </AnimatePresence>
   )
 }
 
 export default Navbar
 
-
 const DropDownMenu = ({ onClose }: { onClose: () => void }) => {
-  const { user } = useAuth();
-  
+  const { user, setUser } = useAuth();
+  const router = useRouter();
+
   return (
     <motion.div
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: -20, opacity: 0 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="fixed top-0 left-0 w-full h-1/2 z-50 bg-black/60 backdrop-blur-md shadow-md flex flex-col items-center justify-center space-y-6 text-white"
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+      className="fixed inset-y-0 right-0 w-full sm:w-80 z-50 bg-white border-l border-gray-100 shadow-2xl flex flex-col pt-20 px-6"
     >
-      {user && navLinks.map((link, index) => (
-        <Link
-          href={link.link}
-          key={index}
-          className="text-lg font-mono tracking-wide hover:underline"
-          onClick={onClose}
-        >
-          {link.name}
-        </Link>
-      ))}
-
       <button
         onClick={onClose}
-        className="absolute top-4 right-6 text-white text-2xl font-bold"
+        className="absolute top-6 right-6 p-2 text-gray-600 hover:text-black transition-colors rounded-full hover:bg-gray-100"
       >
-        ×
+        <X className="w-6 h-6" />
       </button>
+
+      <div className="flex flex-col space-y-6">
+        {user && navLinks.map((link, index) => (
+          <Link
+            href={link.link}
+            key={index}
+            className="text-lg font-medium text-gray-600 hover:text-black transition-colors pb-4 border-b border-gray-50"
+            onClick={onClose}
+          >
+            {link.name}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-8">
+        <button
+          className="w-full flex items-center justify-center gap-2 bg-white text-black border-2 border-black px-5 py-3 rounded-xl text-base font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] transition-all"
+          onClick={async () => {
+            if (user) {
+              await signOut();
+              setUser(null);
+              router.push("/");
+            } else {
+              router.push("/login");
+            }
+            onClose();
+          }}
+        >
+          {user ? `Sign out` : "Get started"}
+        </button>
+      </div>
     </motion.div>
   );
 };
+

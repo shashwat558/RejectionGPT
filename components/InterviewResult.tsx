@@ -148,9 +148,9 @@ const exportAsPDF = () => {
     const completionRate = (answeredQuestions / (questions.length || 1)) * 100
 
     const getScoreColor = (score: number) => {
-      if (score >= 80) return "text-green-400"
-      if (score >= 60) return "text-yellow-400"
-      return "text-red-400"
+      if (score >= 80) return "text-green-600 font-semibold"
+      if (score >= 60) return "text-yellow-600 font-semibold"
+      return "text-red-500 font-semibold"
     }
 
     const formatTime = (seconds: number) => {
@@ -160,46 +160,46 @@ const exportAsPDF = () => {
     }
 
     return (
-      <div className="py-8 space-y-6">
-        <div className="bg-[#252525] rounded-xl border border-[#383838] p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center mx-auto mb-4">
+      <div className="py-8 space-y-6 max-w-5xl mx-auto">
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-200 mb-2">Interview Complete!</h1>
-          <p className="text-gray-400">Here&apos;s how you performed in your practice session</p>
+          <h1 className="text-3xl font-bold tracking-tight text-black mb-2">Interview Complete!</h1>
+          <p className="text-gray-500">Here&apos;s how you performed in your practice session</p>
         </div>
 
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[#252525] border border-[#383838] rounded-lg p-6 text-center">
-            <div className="text-3xl font-bold text-gray-200 mb-1">{answeredQuestions}</div>
-            <div className="text-gray-500 text-sm">Questions Answered</div>
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-black mb-1">{answeredQuestions}</div>
+            <div className="text-gray-500 text-sm font-medium">Questions Answered</div>
             <div className="text-gray-400 text-xs mt-1">out of {questions.length}</div>
           </div>
 
-          <div className="bg-[#252525] border border-[#383838] rounded-lg p-6 text-center">
-            <div className={`text-3xl font-bold mb-1 ${getScoreColor(completionRate)}`}>
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 text-center">
+            <div className={`text-3xl mb-1 ${getScoreColor(completionRate)}`}>
               {Math.round(completionRate)}%
             </div>
-            <div className="text-gray-500 text-sm">Completion Rate</div>
+            <div className="text-gray-500 text-sm font-medium">Completion Rate</div>
           </div>
 
-          <div className="bg-[#252525] border border-[#383838] rounded-lg p-6 text-center">
-            <div className="text-3xl font-bold text-gray-200 mb-1">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-black mb-1">
               {formatTime(Math.round(averageTime))}
             </div>
-            <div className="text-gray-500 text-sm">Avg. Time per Question</div>
+            <div className="text-gray-500 text-sm font-medium">Avg. Time per Question</div>
           </div>
 
-          <div className="bg-[#252525] border border-[#383838] rounded-lg p-6 text-center">
-            <div className="text-3xl font-bold text-gray-200 mb-1">{formatTime(totalTime)}</div>
-            <div className="text-gray-500 text-sm">Total Time</div>
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 text-center">
+            <div className="text-3xl font-bold text-black mb-1">{formatTime(totalTime)}</div>
+            <div className="text-gray-500 text-sm font-medium">Total Time</div>
           </div>
         </div>
 
       
-        <div className="bg-[#252525] rounded-xl border border-[#383838] p-6">
-          <div className="space-y-3">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <div className="space-y-4">
             {questions.map((question, index) => {
               const answer = answers.find((a) => a.questionId === question.id)
               const feedback = feedbacks.find((f) => f.question_id === question.id)
@@ -208,15 +208,15 @@ const exportAsPDF = () => {
               return (
                 <div
                   key={question.id}
-                  className="border border-[#383838] rounded-lg p-4 hover:bg-[#2a2a2a] transition-colors"
+                  className="border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-start gap-4 flex-1">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mt-0.5 ${
                           hasAnswer
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-red-500/20 text-red-400"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-red-100 text-red-500"
                         }`}
                       >
                         {hasAnswer ? (
@@ -226,13 +226,13 @@ const exportAsPDF = () => {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-gray-300 font-medium">Question {index + 1}</h3>
-                        <p className="text-gray-500 text-sm line-clamp-2 break-words">
+                        <h3 className="text-black font-semibold">Question {index + 1}</h3>
+                        <p className="text-gray-600 mt-1 line-clamp-2 break-words">
                           {question.question_text}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <div className="text-gray-400 text-sm">
+                      <div className="text-right ml-4">
+                        <div className="text-gray-500 text-sm font-medium bg-gray-50 px-2 py-1 rounded">
                           {answer ? formatTime(answer.timeSpent) : "0:00"}
                         </div>
                       </div>
@@ -241,22 +241,22 @@ const exportAsPDF = () => {
                       onClick={() =>
                         setSelectedAnswer(selectedAnswer === index ? null : index)
                       }
-                      className="ml-4 p-2 rounded-md bg-[#333] hover:bg-[#444] text-gray-400 hover:text-gray-300 transition-colors"
+                      className="ml-4 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-black transition-colors shrink-0"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                   </div>
 
                   {selectedAnswer === index && (
-                    <div className="mt-4 pt-4 border-t border-[#383838] space-y-6">
+                    <div className="mt-5 pt-5 border-t border-gray-100 space-y-6">
                       <div>
-                        <h4 className="text-gray-300 font-medium mb-2">Your Answer:</h4>
+                        <h4 className="text-black font-semibold mb-3">Your Answer:</h4>
                         {hasAnswer ? (
-                          <div className="bg-[#2a2a2a] rounded-lg p-4">
-                            <p className="text-gray-300 whitespace-pre-wrap">{answer!.answerText}</p>
-                            <div className="flex justify-between text-sm text-gray-500 mt-3">
-                              <span>{answer!.answerText.length} characters</span>
-                              <span>
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                            <p className="text-black leading-relaxed whitespace-pre-wrap">{answer!.answerText}</p>
+                            <div className="flex justify-between text-xs text-gray-500 mt-4 capitalize">
+                              <span className="bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">{answer!.answerText.length} characters</span>
+                              <span className="bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
                                 {
                                   answer!.answerText
                                     .split(" ")
@@ -267,29 +267,29 @@ const exportAsPDF = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                            <p className="text-red-400 text-sm">No answer provided</p>
+                          <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                            <p className="text-red-500 font-medium text-sm">No answer provided</p>
                           </div>
                         )}
                       </div>
 
                       <div>
-                        <h4 className="text-gray-300 font-medium mb-2">Feedback:</h4>
+                        <h4 className="text-black font-semibold mb-3">Feedback from Coach:</h4>
                         {feedback ? (
-                          <div className="bg-[#1f1f1f] border border-[#383838] rounded-lg p-4">
-                            <p className="text-gray-300 whitespace-pre-wrap">
+                          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                            <p className="text-black leading-relaxed whitespace-pre-wrap">
                               {feedback.feedback_text}
                             </p>
-                            <div className="text-sm mt-2 text-gray-400">
-                              Score:{" "}
-                              <span className={`${getScoreColor(feedback.score)} font-semibold`}>
+                            <div className="text-sm mt-4 pb-2 border-b border-gray-100 max-w-[200px] flex justify-between">
+                              <span className="text-gray-500">Score:</span>
+                              <span className={`${getScoreColor(feedback.score)}`}>
                                 {feedback.score}/100
                               </span>
                             </div>
                           </div>
                         ) : (
-                          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                            <p className="text-yellow-400 text-sm">No feedback available</p>
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <p className="text-gray-500 font-medium text-sm">No feedback available</p>
                           </div>
                         )}
                       </div>
@@ -302,12 +302,12 @@ const exportAsPDF = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-center gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-[#333] hover:bg-[#444] text-gray-300 rounded-lg transition-colors"  onClick={exportAsPDF}>
+        <div className="flex justify-center gap-4 pt-4">
+          <button className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 text-black font-medium rounded-xl transition-colors"  onClick={exportAsPDF}>
             <Download className="w-4 h-4" />
             Export Results
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-[#333] hover:bg-[#444] text-gray-300 rounded-lg transition-colors"  onClick={handleShare}>
+          <button className="flex items-center gap-2 px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-xl transition-colors"  onClick={handleShare}>
             <Share className="w-4 h-4" />
             Share Results
           </button>

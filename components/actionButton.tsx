@@ -49,12 +49,12 @@ export default function ActionButtons({ analysisId }: ActionButtonsProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3">
       <LoadingButton
         onClick={handleDownloadPdf}
         isLoading={isGeneratingPdf}
         loadingText="Preparing"
-        className="px-3 py-1.5 bg-[#333] hover:bg-[#444] text-gray-300 text-sm"
+        className="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm text-black font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
       >
         <Download className="w-4 h-4" />
         Save as PDF
@@ -64,13 +64,13 @@ export default function ActionButtons({ analysisId }: ActionButtonsProps) {
         onClick={handleShare}
         isLoading={isSharing}
         loadingText="Sharing"
-        className="px-3 py-1.5 bg-[#333] hover:bg-[#444] text-gray-300 text-sm"
+        className="px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm text-black font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
       >
         <Share2 className="w-4 h-4" />
         Share
       </LoadingButton>
 
-      {shareMessage && <span className="text-xs text-gray-400">{shareMessage}</span>}
+      {shareMessage && <span className="text-sm font-medium text-gray-500">{shareMessage}</span>}
     </div>
   )
 }

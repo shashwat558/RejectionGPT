@@ -56,7 +56,7 @@
 //             <>
 //               <div className='w-full text-right mb-2'>
 //                 <button
-//                   className='text-sm text-gray-300 underline hover:text-red-400 transition'
+//                   className='text-sm text-gray-900 underline hover:text-red-400 transition'
 //                   onClick={() => setPdfUrl(null)}
 //                 >
 //                   Remove PDF
@@ -71,7 +71,7 @@
 //             </>
 //           ) : (
 //             <div className='flex flex-col items-center justify-center text-center gap-4'>
-//               <label className="px-4 py-2 border border-gray-600 rounded-md text-sm text-gray-200 bg-[#1e1e1e] cursor-pointer hover:bg-[#333] transition">
+//               <label className="px-4 py-2 border border-gray-600 rounded-md text-sm text-gray-800 bg-[#1e1e1e] cursor-pointer hover:bg-[#333] transition">
 //                 Upload PDF
 //                 <input
 //                   type="file"
@@ -80,7 +80,7 @@
 //                   className="hidden"
 //                 />
 //               </label>
-//               <p className='text-gray-400 text-sm'>Upload your resume PDF to view it here.</p>
+//               <p className='text-gray-600 text-sm'>Upload your resume PDF to view it here.</p>
 //             </div>
 //           )}
 //         </div>

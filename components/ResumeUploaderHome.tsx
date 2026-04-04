@@ -1,13 +1,14 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
-import React, {useRef, useState } from 'react'
-import { motion} from "framer-motion";
+import React, { useState } from 'react'
+import { motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
-import { CheckCircle, FileText, Briefcase, Star, Coffee, Zap } from 'lucide-react';
+import { CheckCircle, FileText, Briefcase, Star, Zap } from 'lucide-react';
 import { useAuth } from '@/stores/useAuth';
 import LoadingButton from '@/components/ui/loading-button';
 import ErrorState from '@/components/ui/error-state';
 import { uploadAndAnalyze } from '@/lib/services/resume.client';
+import Image from 'next/image';
 
 const ResumeUploaderHome = () => {
     const [resume, setResume] = useState<File | null>(null);
@@ -15,18 +16,18 @@ const ResumeUploaderHome = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const router = useRouter()
-    const {user} = useAuth();
-    const ref = useRef<HTMLVideoElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [videoPlaying, setVideoPlaying] = useState(true);
-    
-    
+    const { user } = useAuth();
+    // const ref = useRef<HTMLVideoElement>(null);
+    // const containerRef = useRef<HTMLDivElement>(null);
+    // const [videoPlaying, setVideoPlaying] = useState(true);
 
-   
+
+
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if(!user){
+        if (!user) {
             router.push("/login")
             return
         }
@@ -43,227 +44,174 @@ const ResumeUploaderHome = () => {
         } finally {
             setIsLoading(false);
         }
-};
-
-    
-
-        
+    };
 
 
 
 
-        
+
+
+
+
+
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className='w-full flex flex-col justify-center items-center mt-10 p-2'
-        >
-            
-            
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[#303030]/20 to-transparent pointer-events-none" />
+        <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-24 mb-10'>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className='flex flex-col justify-center items-center text-center space-y-6 max-w-4xl mx-auto'
+            >
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer pr-4">
+                    <span className="flex h-2 w-2 rounded-full bg-black"></span>
+                    Now it is time to get hired <span className="ml-1">→</span>
+                </div>
 
-            <div className='xl:w-2/3 w-full p-8 flex justify-center items-center rounded-lg border-t-3 border-[#383838] bg-[#252525] shadow-xl relative z-10'>
-                <div className='flex w-full flex-col md:flex-row justify-between items-center gap-8 px-3'>
-                    <div className='flex flex-1 flex-col justify-center items-start gap-6 max-w-xl'>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#333] text-gray-300 text-xs font-medium mb-2">
-                            <Coffee className="w-4 h-4 mr-1 text-yellow-400" />
-                            <span>Cheaper than a career coach&apos;s coffee</span>
-                        </div>
-                        
-                        <h1 className='text-4xl md:text-5xl text-gray-300 font-[900] leading-tight'>
-                            Beat the robots. <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">Before they beat you.</span>
-                        </h1>
-                        
-                        <p className='text-xl text-gray-500 leading-relaxed'>
-                            Upload your resume and watch our AI outsmart their AI. Because nothing says &quot;hire me&quot; like gaming the system with another system.
-                        </p>
+                {/* Main Heading */}
+                <h1 className='text-5xl md:text-7xl font-bold text-black tracking-tight leading-[1.1]'>
+                    Your all-in-one learning platform <span className="font-serif italic font-light text-gray-500">effective</span>
+                </h1>
 
-                        
-                        <div className="flex flex-col gap-3 mt-2">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5 text-gray-400" />
-                                <span className="text-gray-400">Buzzword optimization (because &quot;synergy&quot; still works)</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5 text-gray-400" />
-                                <span className="text-gray-400">ATS-whispering (we speak robot so you don&apos;t have to)</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5 text-gray-400" />
-                                <span className="text-gray-400">Resume CPR when yours is flatlining</span>
-                            </div>
-                        </div>
+                {/* Subheading */}
+                <p className='text-lg md:text-xl text-gray-500 max-w-2xl leading-relaxed'>
+                    Preparing for exams is already challenging enough. Avoid further complications by ditching outdated study methods. Upload your resume and job description to get started.
+                </p>
+
+                {/* Trust Signals */}
+                <div className="flex items-center gap-4 pt-4">
+                    <div className="flex -space-x-3">
+                        <Image width={100} height={100} className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=1" alt="User 1" />
+                        <Image width={100} height={100} className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=2" alt="User 2" />
+                        <Image width={100} height={100} className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=3" alt="User 3" />
+                        <Image width={100} height={100} className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/100?img=4" alt="User 4" />
+                        <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-600">+99</div>
                     </div>
+                    <div className="flex flex-col items-start">
+                        <div className="flex items-center text-black">
+                            <Star className="w-4 h-4 fill-current" />
+                            <Star className="w-4 h-4 fill-current" />
+                            <Star className="w-4 h-4 fill-current" />
+                            <Star className="w-4 h-4 fill-current" />
+                            <Star className="w-4 h-4 fill-current" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-500 mt-0.5">Trusted by 1000+ users</span>
+                    </div>
+                </div>
+            </motion.div>
 
-                    <div className='flex flex-1 flex-col justify-center items-center gap-6 w-full max-w-md'>
-                        <h2 className="text-lg font-semibold text-gray-400 mb-4 flex items-center gap-2">
-                            <span className="h-[1px] flex-1 bg-gray-700" />
-                            Your Ticket to Interview Purgatory
-                            <span className="h-[1px] flex-1 bg-gray-700" />
-                        </h2>
-
-                        
-                        <div className="flex w-full justify-between mb-4">
-                            <div className="flex flex-col items-center">
-                                <div className="w-8 h-8 rounded-full bg-[#333] flex items-center justify-center text-gray-300 font-medium">1</div>
-                                <span className="text-xs text-gray-500 mt-1">Upload</span>
+            {/* Upload Area */}
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className='mt-16 bg-white border-2 border-black rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden'
+            >
+                <div className='flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-200'>
+                    {/* Resume Upload Column */}
+                    <div className='flex-1 p-8 md:p-12 hover:bg-gray-50/50 transition-colors'>
+                        <div className="mb-6 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-black">1. Upload Resume</h3>
+                                <p className="text-sm text-gray-500 mt-1">PDF or DOCX format</p>
                             </div>
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="h-[2px] w-full bg-[#333] mb-5"></div>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <div className="w-8 h-8 rounded-full bg-[#333] flex items-center justify-center text-gray-300 font-medium">2</div>
-                                <span className="text-xs text-gray-500 mt-1">Magic</span>
-                            </div>
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="h-[2px] w-full bg-[#333] mb-5"></div>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <div className="w-8 h-8 rounded-full bg-[#333] flex items-center justify-center text-gray-300 font-medium">3</div>
-                                <span className="text-xs text-gray-500 mt-1">Profit?</span>
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                                <FileText className="w-5 h-5" />
                             </div>
                         </div>
 
-                        <div className='relative w-full h-72 border-dashed border-2 border-[#424141] rounded-xl flex flex-col items-center justify-center p-6 hover:border-[#555] transition-colors group'>
-                            <div className="absolute inset-0 bg-[#2a2a2a] opacity-0 group-hover:opacity-50 rounded-xl transition-opacity" />
-                            
-                            <FileText 
-                                className="w-12 h-12 mb-4 text-gray-400 group-hover:text-gray-300 transition-colors" 
-                            />
-                            <p className='text-gray-400 text-center mb-2 group-hover:text-gray-300 transition-colors'>Drop your resume here (the one you&apos;ve rewritten 47 times)</p>
-                            <p className='text-gray-500 text-sm'>or click to browse (we accept PDF, DOC, DOCX, and tears)</p>
+                        <div className='relative w-full h-48 border-2 border-dashed border-black rounded-xl flex flex-col items-center justify-center p-6 bg-white hover:bg-gray-50 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all group overflow-hidden'>
                             <input
                                 type="file"
                                 accept=".pdf,.doc,.docx"
-                                className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
                                 onChange={(e) => setResume(e.target.files ? e.target.files[0] : null)}
-                                
                                 required
                             />
-                            {resume && (
-                                <div className="text-sm text-gray-400 mt-2 text-center">
-                                    <div className="flex items-center gap-2 bg-[#333] px-3 py-1 rounded-full">
-                                        <FileText className="w-4 h-4" />
-                                        {resume.name}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setResume(null);
-                                            }}
-                                            className="ml-2 text-red-400 hover:text-red-500 text-xs"
-                                        >
-                                            (regrets)
-                                        </button>
+
+                            {!resume ? (
+                                <>
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                        <FileText className="w-6 h-6 text-gray-600 group-hover:text-black transition-colors" />
                                     </div>
+                                    <p className='text-sm font-medium text-black mb-1 group-hover:text-black transition-colors'>Click or drag to upload</p>
+                                    <p className='text-xs text-gray-500 text-center max-w-[200px]'>SVG, PNG, JPG or GIF (max. 800x400px)</p>
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center text-center z-20">
+                                    <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-3">
+                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                    </div>
+                                    <p className="text-sm font-medium text-black truncate max-w-[200px]">{resume.name}</p>
+                                    <p className="text-xs text-gray-500 mt-1">Ready to process</p>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            setResume(null);
+                                        }}
+                                        className="mt-3 text-red-500 hover:text-red-700 text-xs font-medium cursor-pointer relative z-30"
+                                    >
+                                        Remove file
+                                    </button>
                                 </div>
                             )}
                         </div>
+                    </div>
 
-                        <div className="relative w-full">
-                            <div className="absolute top-5 left-3">
-                                <Briefcase className="w-5 h-5 text-gray-500" />
+                    {/* Job Description Column */}
+                    <div className='flex-1 p-8 md:p-12 bg-gray-50/30'>
+                        <div className="mb-6 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-black">2. Job Details</h3>
+                                <p className="text-sm text-gray-500 mt-1">Paste the requirements</p>
                             </div>
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                                <Briefcase className="w-5 h-5" />
+                            </div>
+                        </div>
+
+                        <div className="relative w-full h-48">
                             <textarea
-                                placeholder='Paste that impossibly demanding job description here...'
-                                className='w-full h-32 p-4 pl-10 rounded-lg bg-[#303030] text-gray-300 placeholder-gray-500 border border-[#424141] focus:outline-none focus:ring-2 focus:ring-[#555] resize-none'
+                                placeholder='Paste the job description here to analyze alignment...'
+                                className='w-full h-full p-5 rounded-xl bg-white border-2 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] resize-none transition-shadow'
                                 onChange={(e) => setJobDesc(e.target.value)}
                                 disabled={isLoading}
                                 required
                             />
                         </div>
-                        
-                                                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full">
-                                                    <LoadingButton
-                                                        isLoading={isLoading}
-                                                        loadingText="Analyzing..."
-                                                        className="w-full py-3 px-6 bg-[#424141] hover:bg-[#555] text-gray-300 font-medium rounded-lg shadow-md"
-                                                        onClick={handleSubmit}
-                                                        disabled={!resume}
-                                                    >
-                                                        Make Me Employable <Zap className="w-4 h-4 ml-1" />
-                                                    </LoadingButton>
-                                                </motion.div>
-                                                {errorMessage && (
-                                                    <div className="mt-4">
-                                                        <ErrorState message={errorMessage} />
-                                                    </div>
-                                                )}
                     </div>
                 </div>
-            </div>
-            <motion.div initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }} className='xl:w-2/3 w-full mt-10 flex flex-col justify-center items-center rounded-lg border-t-3 border-[#383838] bg-[#252525] shadow-xl relative z-10' ref={containerRef}>
-                <div className={`absolute top-0 left-[98%] flex flex-col items-center justify-center transition-opacity duration-300 ${!videoPlaying ? 'opacity-100' : 'opacity-0'}`}>
-                    <h3 className='text-white text-md ml-3 bg-[#505050] p-1 rounded-lg'>How to use</h3>
-                    <svg
-                        className=" transform scale-x-[-1] scale-y-[-1]"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="white"
-                        viewBox="-10 -20 100 125"
-                        height={100}
-                        width={100}
-                        x="0px"
-                        y="0px"
+
+                {/* Footer Action */}
+                <div className="p-6 md:px-12 md:py-8 bg-white border-t-2 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p className="text-sm text-black font-bold">Both fields are required to begin</p>
+                    <motion.div whileHover={{ scale: 1 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                        <LoadingButton
+                            isLoading={isLoading}
+                            loadingText="Analyzing alignment..."
+                            className="w-full sm:w-auto py-3 px-8 bg-white border-2 border-black text-black font-bold rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            onClick={handleSubmit}
+                            disabled={!resume || !jobDesc}
                         >
-                        <title>Artboard 20</title>
-
-                        <g data-name="Layer 32">
-                            <path d="M21.8,84.93C17.17,73.18,18.3,57.49,31,51.23c5.9-2.92,13.64-2.24,18.55,2.32,3.81,3.54,4,9.65-1.5,11.39a12.56,12.56,0,0,1-11.27-2.37C24.87,53,35.34,37.29,45.69,32c12-6.15,26.47-5.58,38.32.5,1.72.88,3.24-1.71,1.52-2.59-12.85-6.59-28.39-7.17-41.36-.5C33.6,34.83,24.86,47,30.31,59.07a15.82,15.82,0,0,0,13.12,9.25c4.56.38,10.38-1.4,12-6.18,1.89-5.46-2.94-10.83-7.38-13.28a20,20,0,0,0-16.28-1.22C16.2,53.3,13.49,72,18.91,85.73c.7,1.77,3.6,1,2.89-.8Z" />
-                            <path d="M74.83,20.92A134.38,134.38,0,0,1,86,32l.31-2.35a105.47,105.47,0,0,0-15.66,9.91c-1.51,1.16,0,3.77,1.52,2.59a104.86,104.86,0,0,1,15.65-9.91,1.52,1.52,0,0,0,.31-2.36A134.48,134.48,0,0,0,77,18.8c-1.44-1.27-3.58.85-2.12,2.12Z" />
-                        </g>
-                        </svg>
-
+                            Analyze Now <Zap className="w-4 h-4 ml-2" />
+                        </LoadingButton>
+                    </motion.div>
                 </div>
-             
-             
-                <video autoPlay preload='auto' controls loop muted src="kanye.mp4" className='w-full h-full object-cover rounded-xl' ref={ref} onPlay={() => setVideoPlaying(true)} onPause={() => setVideoPlaying(false)} />
-             
             </motion.div>
 
-            
-            <div className="mt-8 w-full xl:w-2/3 px-4">
-                <div className="flex flex-col md:flex-row gap-4 justify-between">
-                    <div className="bg-[#252525] p-4 rounded-lg border border-[#383838] flex-1">
-                        <div className="flex items-center gap-1 text-yellow-400 mb-2">
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                        </div>
-                        <p className="text-gray-400 text-sm">"After using this tool, I got callbacks from 3 companies that had previously ghosted me. Turns out my resume needed more buzzwords than a corporate bingo card."</p>
-                        <p className="text-gray-500 text-xs mt-2">— Michael K., Professional Keyword Stuffer</p>
-                    </div>
-                    <div className="bg-[#252525] p-4 rounded-lg border border-[#383838] flex-1">
-                        <div className="flex items-center gap-1 text-yellow-400 mb-2">
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                        </div>
-                        <p className="text-gray-400 text-sm">"The ATS compatibility check saved my application. Apparently, fancy fonts and creative layouts are resume suicide. Who knew robots were such design critics?"</p>
-                        <p className="text-gray-500 text-xs mt-2">— Sarah L., Reformed Font Enthusiast</p>
-                    </div>
-                    <div className="bg-[#252525] p-4 rounded-lg border border-[#383838] flex-1">
-                        <div className="flex items-center gap-1 text-yellow-400 mb-2">
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                            <Star className="w-4 h-4 fill-current" />
-                        </div>
-                        <p className="text-gray-400 text-sm">"I landed my dream job after using this tool. Now I just need another tool to help me actually do all those things I claimed I could do on my resume."</p>
-                        <p className="text-gray-500 text-xs mt-2">— Alex T., Professional Fake-it-till-you-make-it-er</p>
-                    </div>
-                </div>
-            </div>
-        </motion.div>
+            {/* Error Message */}
+            {errorMessage && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6"
+                >
+                    <ErrorState message={errorMessage} />
+                </motion.div>
+            )}
+        </div>
     )
 }
 

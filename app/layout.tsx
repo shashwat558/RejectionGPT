@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import {   Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 
-const Robotomono = Outfit({
+const interFont = Inter({
     subsets: ["latin"],
-    weight: "400"
+    weight: ["400", "500", "600", "700", "800", "900"]
 })
 
 export const metadata: Metadata = {
@@ -25,13 +25,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${Robotomono.className} antialiased bg-[#09090b] text-gray-200 selection:bg-pink-500/30`}
+        className={`${interFont.className} antialiased bg-white text-black selection:bg-gray-200`}
       >
-        
-
-      
-
-      
         <AuthProvider />
         <ConditionalNavbar />
         <div className="min-h-screen flex flex-col">

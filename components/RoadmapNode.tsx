@@ -49,7 +49,7 @@ export default function RoadmapNode({ data }: { data: RoadmapNodeData }) {
         </h3>
         <button
           onClick={data.onToggleComplete}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="text-gray-600 hover:text-white transition-colors"
           title={data.isComplete ? "Mark as incomplete" : "Mark as complete"}
         >
           {data.isComplete ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
@@ -75,13 +75,13 @@ export default function RoadmapNode({ data }: { data: RoadmapNodeData }) {
       )}
 
       {/* Description */}
-      <p className="text-sm text-gray-300 mb-3 line-clamp-3 leading-relaxed">
+      <p className="text-sm text-gray-900 mb-3 line-clamp-3 leading-relaxed">
         {data.description}
       </p>
 
       {/* Duration */}
       {data.duration && (
-        <div className="flex items-center gap-1 text-xs text-gray-400 border-t border-white/10 pt-2">
+        <div className="flex items-center gap-1 text-xs text-gray-600 border-t border-white/10 pt-2">
           <svg
             className="w-4 h-4"
             fill="none"

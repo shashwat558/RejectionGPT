@@ -20,18 +20,18 @@ export default function AnalyticsClient({
   feedbackHistory: AnalysisSummary[]
 }) {
 
-  if (!analysisData) {
+    if (!analysisData) {
     return (
-      <div className="flex justify-center items-center h-screen bg-[#09090b]">
-        <div className="w-12 h-12 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin"></div>
+      <div className="flex justify-center items-center h-screen bg-white">
+        <div className="w-12 h-12 border-4 border-gray-100 border-t-black rounded-full animate-spin"></div>
       </div>
     )
   }
 
   const matchScore = Number.isFinite(analysisData.match_score) ? analysisData.match_score : 0
-  const sentimentColor = matchScore > 70 ? "text-emerald-400" : matchScore > 40 ? "text-yellow-400" : "text-rose-400";
-  const sentimentBg = matchScore > 70 ? "bg-emerald-500/10" : matchScore > 40 ? "bg-yellow-500/10" : "bg-rose-500/10";
-  const sentimentBorder = matchScore > 70 ? "border-emerald-500/20" : matchScore > 40 ? "border-yellow-500/20" : "border-rose-500/20";
+  const sentimentColor = matchScore > 70 ? "text-emerald-600" : matchScore > 40 ? "text-amber-600" : "text-rose-600";
+  const sentimentBg = matchScore > 70 ? "bg-emerald-50" : matchScore > 40 ? "bg-amber-50" : "bg-rose-50";
+  const sentimentBorder = matchScore > 70 ? "border-emerald-200" : matchScore > 40 ? "border-amber-200" : "border-rose-200";
   
   // Custom donut chart calculation
   const radius = 60;
@@ -39,30 +39,30 @@ export default function AnalyticsClient({
   const strokeDashoffset = circumference - (matchScore / 100) * circumference;
 
   return (
-    <div className="flex min-h-screen bg-[#09090b] text-white selection:bg-pink-500/30">
+    <div className="flex min-h-screen bg-gray-50/50 text-black selection:bg-gray-200">
       <MobileSidebarToggle feedbacks={feedbackHistory} currentId={analysisId} />
       <FeedbackSidebar feedbacks={feedbackHistory} currentId={analysisId} />
 
-      <div className="flex-1 h-screen overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <div className="flex-1 h-screen overflow-y-auto overflow-x-hidden custom-scrollbar bg-white">
         {/* Hero Background */}
-        <div className="absolute top-0 w-full h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-900/10 via-[#09090b] to-[#09090b] pointer-events-none" />
+        <div className="absolute top-0 w-full h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-white to-white pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
           
           {/* Header */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
             <div>
-              <Link href="/analytics" className="inline-flex items-center text-sm text-zinc-500 hover:text-white transition-colors mb-3 group">
+              <Link href="/analytics" className="inline-flex items-center text-sm text-gray-500 font-medium hover:text-black transition-colors mb-3 group">
                 <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                 Back to Dashboard
               </Link>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white via-zinc-200 to-zinc-500">
+              <h1 className="text-4xl md:text-5xl font-bold text-black tracking-tight">
                 Analysis Report
               </h1>
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
-               <div className="flex items-center gap-2 p-1.5 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-xl shadow-2xl">
+               <div className="flex items-center gap-2 p-1.5 bg-white border border-gray-200 rounded-2xl shadow-sm">
                   <ChatRedirectButton resumeId={analysisData.resume_id} descId={analysisData.desc_id} />
                   <InterviewRedirectionBUtton analysisId={analysisId} />
                   <ActionButtons analysisId={analysisId} />
@@ -76,9 +76,8 @@ export default function AnalyticsClient({
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="lg:col-span-1 min-h-[300px] rounded-3xl bg-[#0e0e10] border border-white/5 p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl"
+              className="lg:col-span-1 min-h-[300px] rounded-3xl bg-white border border-gray-200 p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-sm"
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
               
               <div className="relative z-10 flex flex-col items-center">
                  <div className="relative w-48 h-48 flex items-center justify-center">
@@ -86,7 +85,7 @@ export default function AnalyticsClient({
                     <svg viewBox="0 0 192 192" className="w-full h-full -rotate-90 transform">
                       <circle
                         cx="96" cy="96" r="60"
-                        className="stroke-zinc-800"
+                        className="stroke-gray-100"
                         strokeWidth="12"
                         fill="transparent"
                       />
@@ -107,11 +106,11 @@ export default function AnalyticsClient({
                       <span className={`text-5xl font-bold ${sentimentColor} tracking-tighter`}>
                         {matchScore}
                       </span>
-                      <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest mt-1">Score</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Score</span>
                     </div>
                  </div>
                  
-                 <div className={`mt-6 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${sentimentBg} ${sentimentColor} border ${sentimentBorder} bg-opacity-50`}>
+                 <div className={`mt-6 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${sentimentBg} ${sentimentColor} border ${sentimentBorder}`}>
                     {matchScore > 70 ? "Excellent Match" : matchScore > 40 ? "Potential Fit" : "Needs Optimization"}
                  </div>
               </div>
@@ -122,28 +121,28 @@ export default function AnalyticsClient({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="lg:col-span-2 rounded-3xl bg-[#0e0e10] border border-white/5 p-8 relative overflow-hidden shadow-2xl flex flex-col"
+              className="lg:col-span-2 rounded-3xl bg-white border border-gray-200 p-8 relative overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-shadow"
             >
                
                
                <div className="flex items-center gap-3 mb-6">
-                 <div className="p-3 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 text-orange-400 border border-orange-500/20 shadow-lg shadow-orange-900/10">
-                   <Zap className="w-5 h-5" />
+                 <div className="p-3 rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 shadow-sm">
+                   <Zap className="w-5 h-5 fill-amber-500" />
                  </div>
-                 <h2 className="text-xl font-semibold text-zinc-100">Executive Summary</h2>
+                 <h2 className="text-xl font-bold text-black tracking-tight">Executive Summary</h2>
                </div>
                
                <div className="flex-1">
-                 <p className="text-zinc-400 leading-relaxed text-lg font-light">
+                 <p className="text-gray-600 leading-relaxed text-lg font-medium">
                    {analysisData.summary}
                  </p>
                </div>
                
-               <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-zinc-600 font-medium uppercase tracking-wider">
+               <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 font-bold uppercase tracking-wider">
                     <Brain className="w-4 h-4" /> AI Analysis
                   </div>
-                  <span className="text-xs text-zinc-600">{new Date().toLocaleDateString()}</span>
+                  <span className="text-xs font-medium text-gray-500">{new Date().toLocaleDateString()}</span>
                </div>
             </motion.div>
 
@@ -155,9 +154,9 @@ export default function AnalyticsClient({
               title="Key Strengths" 
               items={analysisData.strengths} 
               icon={<Trophy className="w-5 h-5" />}
-              color="text-emerald-400"
-              bg="bg-emerald-500/10"
-              border="border-emerald-500/20"
+              color="text-emerald-600"
+              bg="bg-emerald-50"
+              border="border-emerald-200"
               delay={0.2}
             />
 
@@ -166,9 +165,9 @@ export default function AnalyticsClient({
               title="Missing Skills" 
               items={analysisData.missing_skills} 
               icon={<Target className="w-5 h-5" />}
-              color="text-amber-400"
-              bg="bg-amber-500/10"
-              border="border-amber-500/20"
+              color="text-amber-600"
+              bg="bg-amber-50"
+              border="border-amber-200"
               delay={0.3}
             />
 
@@ -177,35 +176,35 @@ export default function AnalyticsClient({
               title="Areas to Improve" 
               items={analysisData.weak_points} 
               icon={<AlertTriangle className="w-5 h-5" />}
-              color="text-rose-400"
-              bg="bg-rose-500/10"
-              border="border-rose-500/20"
+              color="text-rose-600"
+              bg="bg-rose-50"
+              border="border-rose-200"
               delay={0.4}
             />
           </div>
 
           {/* Action Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-             <div className="group rounded-3xl bg-gradient-to-br from-[#121212] to-[#1a1a1a] border border-white/5 p-6 hover:border-pink-500/30 transition-all cursor-pointer shadow-xl">
+             <div className="group rounded-3xl bg-white border border-gray-200 p-6 hover:border-black transition-all cursor-pointer shadow-sm hover:shadow-md">
                 <div className="flex items-start justify-between">
-                   <div className="p-3 rounded-2xl bg-white/5 group-hover:bg-pink-500/20 transition-colors">
-                      <Target className="w-6 h-6 text-zinc-400 group-hover:text-pink-400" />
+                   <div className="p-3 rounded-2xl bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                      <Target className="w-6 h-6 text-gray-600 group-hover:text-black" />
                    </div>
-                   <ArrowLeft className="w-5 h-5 text-zinc-600 rotate-180 group-hover:translate-x-1 group-hover:text-pink-400 transition-all" />
+                   <ArrowLeft className="w-5 h-5 text-gray-400 rotate-180 group-hover:translate-x-1 group-hover:text-black transition-all" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-200">Refine Your Resume</h3>
-                <p className="mt-2 text-sm text-zinc-500 leading-relaxed">Use the feedback above to bridge the gap. Adding missing keywords can boost your ATS score significantly.</p>
+                <h3 className="mt-5 text-lg font-bold text-black tracking-tight">Refine Your Resume</h3>
+                <p className="mt-2 text-sm text-gray-500 font-medium leading-relaxed">Use the feedback above to bridge the gap. Adding missing keywords can boost your ATS score significantly.</p>
              </div>
 
-             <div className="group rounded-3xl bg-gradient-to-br from-[#121212] to-[#1a1a1a] border border-white/5 p-6 hover:border-violet-500/30 transition-all cursor-pointer shadow-xl">
+             <div className="group rounded-3xl bg-white border border-gray-200 p-6 hover:border-black transition-all cursor-pointer shadow-sm hover:shadow-md">
                 <div className="flex items-start justify-between">
-                   <div className="p-3 rounded-2xl bg-white/5 group-hover:bg-violet-500/20 transition-colors">
-                      <Target className="w-6 h-6 text-zinc-400 group-hover:text-violet-400" />
+                   <div className="p-3 rounded-2xl bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                      <Target className="w-6 h-6 text-gray-600 group-hover:text-black" />
                    </div>
-                   <ArrowLeft className="w-5 h-5 text-zinc-600 rotate-180 group-hover:translate-x-1 group-hover:text-violet-400 transition-all" />
+                   <ArrowLeft className="w-5 h-5 text-gray-400 rotate-180 group-hover:translate-x-1 group-hover:text-black transition-all" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-200">Compare Another Role</h3>
-                <p className="mt-2 text-sm text-zinc-500 leading-relaxed">Testing against multiple job descriptions helps you create a more versatile master resume.</p>
+                <h3 className="mt-5 text-lg font-bold text-black tracking-tight">Compare Another Role</h3>
+                <p className="mt-2 text-sm text-gray-500 font-medium leading-relaxed">Testing against multiple job descriptions helps you create a more versatile master resume.</p>
              </div>
           </div>
 
@@ -223,15 +222,15 @@ function FeedbackCard({ title, items, icon, color, bg, border, delay }: { title:
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="rounded-3xl bg-[#0e0e10] border border-white/5 p-6 flex flex-col h-full hover:border-white/10 transition-colors shadow-xl"
+      className="rounded-3xl bg-white border border-gray-200 p-6 flex flex-col h-full hover:border-gray-300 hover:shadow-md transition-all shadow-sm"
     >
       <div className="flex items-center gap-4 mb-6">
-        <div className={`p-3 rounded-2xl ${bg} ${color} border ${border} shrink-0 shadow-lg shadow-black/20`}>
+        <div className={`p-3 rounded-2xl ${bg} ${color} border ${border} shrink-0`}>
           {icon}
         </div>
         <div>
-            <h3 className="text-base font-semibold text-zinc-200">{title}</h3>
-            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{items?.length || 0} POINTS</span>
+            <h3 className="text-lg font-bold text-black tracking-tight">{title}</h3>
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{items?.length || 0} POINTS</span>
         </div>
       </div>
       
@@ -239,13 +238,13 @@ function FeedbackCard({ title, items, icon, color, bg, border, delay }: { title:
         {items && items.length > 0 ? (
           items.map((item, idx) => (
              <div key={idx} className="flex gap-3 items-start group">
-                <div className={`relative mt-2 w-1.5 h-1.5 rounded-full ${color.replace('text-', 'bg-')} opacity-60 shrink-0 group-hover:scale-150 transition-all`} /> 
-                <p className="text-sm text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors">{item}</p>
+                <div className={`relative mt-2 w-1.5 h-1.5 rounded-full opacity-30 shrink-0 bg-black`} /> 
+                <p className="text-sm text-gray-600 font-medium leading-relaxed">{item}</p>
              </div>
           ))
         ) : (
-          <div className="h-full flex items-center justify-center py-8 opacity-30">
-             <p className="text-sm italic">Nothing to report</p>
+          <div className="h-full flex items-center justify-center py-8 opacity-50">
+             <p className="text-sm font-medium italic text-gray-500">Nothing to report</p>
           </div>
         )}
       </div>
