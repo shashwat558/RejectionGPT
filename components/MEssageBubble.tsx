@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, RotateCcw, ThumbsUp, ThumbsDown, Link as LinkIcon, Pin } from "lucide-react"
+import { Copy, RotateCcw, ThumbsUp, ThumbsDown, Link as LinkIcon, Pin, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -52,16 +52,16 @@ export default function MessageBubble({
       onMouseEnter={() => actionsEnabled && setShowActions(true)}
       onMouseLeave={() => actionsEnabled && setShowActions(false)}
     >
-      <div className={`w-9 h-9 rounded-full flex items-center shrink-0 justify-center text-[10px] font-bold tracking-wider ${isUser ? 'bg-black text-white' : 'bg-gray-100 text-black border border-gray-200'}`}>
-        {isUser ? "YOU" : "AI"}
+      <div className={`w-9 h-9 rounded-full flex items-center shrink-0 justify-center text-[10px] font-bold tracking-wider shadow-sm ${isUser ? 'bg-black text-white' : 'bg-gradient-to-br from-orange-400 to-orange-600 text-white'}`}>
+        {isUser ? "YOU" : <Sparkles className="w-4 h-4 text-white" />}
       </div>
 
       <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
         <div
-          className={`rounded-2xl px-5 py-3 border ${
+          className={`rounded-2xl px-5 py-4 ${
             isUser
-              ? "bg-gray-50 text-black border-gray-200"
-              : "bg-white text-black border-gray-200 shadow-sm"
+              ? "bg-black text-white shadow-md rounded-tr-sm"
+              : "bg-white border border-gray-100 shadow-sm rounded-tl-sm text-gray-800"
           } ${isPinned ? "ring-2 ring-black" : ""}`}
         >
           <motion.div

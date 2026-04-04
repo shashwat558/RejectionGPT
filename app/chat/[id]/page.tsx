@@ -9,9 +9,9 @@ const page = async ({params}: {params: Promise<{id: string}>}) => {
       
 
   return (
-    <div className="flex h-screen chat-shell overflow-hidden">
+    <div className="flex h-screen pt-[72px] sm:pt-20 overflow-hidden bg-gray-50/50">
       <ChatSidebar />
-      <div className="flex-1 flex flex-col max-w-full justify-center items-center">
+      <div className="flex-1 flex justify-center h-full relative">
         <ChatInterface conversationId={id} />
       </div>
     </div>
