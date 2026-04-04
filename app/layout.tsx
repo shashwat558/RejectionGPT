@@ -3,12 +3,12 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
-import Footer from "@/components/Footer";
+
 import { Analytics } from "@vercel/analytics/next";
 
 const interFont = Inter({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800", "900"]
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"]
 })
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           {children}
         </div>
-        <Footer />
+
         <Analytics />
       </body>
     </html>
