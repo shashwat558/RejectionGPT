@@ -1,10 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from 'next/server';
-
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { getGenAI } from '@/lib/ai';
 
 export async function POST(req: Request) {
   try {
+    const genAI = await getGenAI();
     const { latex, instruction } = await req.json();
 
     if (!latex || !instruction) {

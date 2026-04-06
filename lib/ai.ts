@@ -1,12 +1,23 @@
 import { GoogleGenAI, Type } from "@google/genai"
+import { cookies } from "next/headers"
 import type { JobInfo, ResumeAnalysisResult } from "@/lib/types/analytics"
 import type { ChatHistoryEntry, ChatSource } from "@/lib/types/chat"
 import type { InterviewResponse, InterviewFeedback } from "@/lib/types/interview"
 import { CHAT_SOURCE_DELIMITER } from "@/lib/types/chat"
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+export async function getGenAI() {
+  let customKey = "";
+  try {
+    const cookieStore = await cookies();
+    customKey = cookieStore.get("gemini_api_key")?.value || "";
+  } catch (e) {
+    console.error("Failed to read cookies", e);
+  }
+  return new GoogleGenAI({ apiKey: customKey || process.env.GEMINI_API_KEY });
+}
 
 export async function extractJobInfo(jobDesc: string): Promise<JobInfo> {
+  const genAI = await getGenAI();
   const prompt = `
 Extract the job title, company name, and description from the following job description.
 
@@ -40,6 +51,7 @@ export async function generateResumeAnalysis({
   resumeText: string
   jobDescription: string
 }): Promise<ResumeAnalysisResult> {
+  const genAI = await getGenAI();
   const prompt = `
 You are a smart, supportive, and slightly sarcastic career coach. You have reviewed thousands of resumes and job descriptions. Now, you are helping a real person figure out how their resume fits the job they want.
 
@@ -83,6 +95,7 @@ ${jobDescription}
 }
 
 export async function embedText(text: string) {
+  const genAI = await getGenAI();
   const embeddingResponse = await genAI.models.embedContent({
     model: "gemini-embedding-001",
     contents: text,
@@ -102,6 +115,7 @@ export async function streamChatAnswer({
   userPrompt: string
   conversationHistory: ChatHistoryEntry[]
 }) {
+  const genAI = await getGenAI();
   const groundingTool = {
     googleSearch: {},
   }
@@ -172,6 +186,7 @@ export async function generateInterviewQuestions(
   resumeText: string,
   jobDescription: string
 ): Promise<string[]> {
+  const genAI = await getGenAI();
   const prompt = `
 You are an interview based on candidate's resumeText and job description text, generate 10 job-specific interview questions covering both behavioral and technical aspects.
 
@@ -209,6 +224,7 @@ ${jobDescription}
 export async function evaluateInterviewResponses(
   responses: InterviewResponse[]
 ): Promise<InterviewFeedback[]> {
+  const genAI = await getGenAI();
   const prompt = `
 You're an AI interview evaluator. For each of the following questions and answers, provide:
 - feedback_text

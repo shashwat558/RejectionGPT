@@ -1,12 +1,10 @@
 import { createClientServer } from "@/lib/utils/supabase/server";
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
-
-
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { getGenAI } from "@/lib/ai";
 
 export async function GET(req: NextRequest) {
-
+    const genAI = await getGenAI();
     const searchParams = req.nextUrl.searchParams;
     const analysisId = searchParams.get("analysisId");
     const experiencelevel = searchParams.get("experiencelevel");

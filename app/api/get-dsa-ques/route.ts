@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { createClientServer } from "@/lib/utils/supabase/server";
-
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { getGenAI } from "@/lib/ai";
 
 export async function POST(req: NextRequest) {
   try {
+    const genAI = await getGenAI();
     const { feedback, analysisId } = await req.json(); 
     const supabase = await createClientServer();
 
