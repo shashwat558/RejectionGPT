@@ -27,7 +27,9 @@ export async function createInterview(
     .from("interview")
     .select("id, status")
     .eq("resume_id", analysisData.resume_id)
-    .single()
+    .eq("job_desc_id", analysisData.desc_id)
+    .eq("user_id", analysisData.user_id)
+    .maybeSingle()
 
   if (alreadyExists?.id) {
     return {

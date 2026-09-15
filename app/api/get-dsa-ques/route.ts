@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { Type } from "@google/genai";
-import { createClientServer } from "@/lib/utils/supabase/server";
-import { getGenAI } from "@/lib/ai";
+import { getGenAI, ANALYSIS_MODEL } from "@/lib/ai";
+import { requireAnalysisOwner } from "@/lib/api/auth";
+import { fail, handleApiError, ok, requestId } from "@/lib/api/response";
+import { logger } from "@/lib/logger";
+
+const postSchema = z.object({
+  feedback: z.unknown(),
+  analysisId: z.string().uuid(),
+});
+
+const getQuerySchema = z.object({ analysisId: z.string().uuid() });
 
 export async function POST(req: NextRequest) {
+  const rid = requestId();
   try {
-    const genAI = await getGenAI();
-    const { feedback, analysisId } = await req.json(); 
-    const supabase = await createClientServer();
-
-    
+    const json = await req.json().catch(() => null);
+    const parsed = postSchema.safeParse(json);
+    if (!parsed.success) {
+      return fail("Validation error: feedback + analysisId (uuid) required", { status: 400, requestId: rid });
+    }
+    const { feedback, analysisId } = parsed.data;
+    const { supabase } = await requireAnalysisOwner(analysisId);
+    const genAI = getGenAI();
     
     const prompt = `
       You are a DSA mentor. Based on the following resume feedback, suggest 5 LeetCode problems that will help the user strengthen weak areas relevant to their target job.
@@ -21,7 +35,7 @@ export async function POST(req: NextRequest) {
       - reason_suggested (one sentence explaining why this question was suggested)
 
       Feedback:
-      ${JSON.stringify(feedback)}
+      ${JSON.stringify(feedback).slice(0, 8000)}
 
       Return ONLY a JSON array of objects like:
       [
@@ -37,7 +51,7 @@ export async function POST(req: NextRequest) {
     `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: ANALYSIS_MODEL,
       contents: prompt,
       config: {
         temperature: 0.7,
@@ -73,50 +87,55 @@ export async function POST(req: NextRequest) {
       reason_suggested?: string;
       [key: string]: unknown;
     };
-    const parsed = JSON.parse(response.text ?? "{}");
-    const problems = parsed.questions ?? [] as GeneratedProblem[];
+    let problems: GeneratedProblem[] = [];
+    try {
+      const parsedJson = JSON.parse(response.text ?? "{}");
+      problems = parsedJson.questions ?? [];
+    } catch {
+      return fail("Model returned invalid JSON", { status: 502, requestId: rid });
+    }
 
-    if (analysisId && Array.isArray(problems) && problems.length > 0) {
-      // Optional clear to avoid duplicates for this analysis
-      await supabase.from("dsa_questions").delete().eq("analysis_result_id", analysisId);
-
-      const rows = problems.map((p: GeneratedProblem) => ({
+    if (Array.isArray(problems) && problems.length > 0) {
+      const rows = problems.slice(0, 10).map((p: GeneratedProblem) => ({
         analysis_result_id: analysisId,
-        title: p.name ?? p.title ?? "Untitled",
-        difficulty: p.difficulty ?? "Medium",
-        topic_tags: Array.isArray(p.topic_tags) ? p.topic_tags : null,
-        reason_suggested: p.reason_suggested ?? null,
+        title: String((p.name as string) ?? p.title ?? "Untitled").slice(0, 200),
+        difficulty: String(p.difficulty ?? "Medium").slice(0, 20),
+        topic_tags: Array.isArray(p.topic_tags) ? p.topic_tags.slice(0, 10) : null,
+        reason_suggested: typeof p.reason_suggested === "string" ? p.reason_suggested.slice(0, 1000) : null,
       }));
 
-      const { data: inserted } = await supabase
+      // Best-effort replace; log insert errors instead of silently ignoring
+      const { error: delError } = await supabase.from("dsa_questions").delete().eq("analysis_result_id", analysisId);
+      if (delError) logger.warn("[dsa] delete failed", { requestId: rid, error: delError.message });
+
+      const { data: inserted, error: insError } = await supabase
         .from("dsa_questions")
         .insert(rows)
         .select("id, analysis_result_id, title, difficulty, topic_tags, reason_suggested, created_at")
         .order("created_at", { ascending: true });
 
-      if (inserted && inserted.length > 0) {
-        return NextResponse.json({ problems: inserted, fromCache: false });
+      if (insError) {
+        logger.error("[dsa] insert failed", { requestId: rid, error: insError.message });
+      } else if (inserted && inserted.length > 0) {
+        return ok({ problems: inserted, fromCache: false }, { requestId: rid });
       }
     }
 
-    return NextResponse.json({ problems });
+    return ok({ problems }, { requestId: rid });
   } catch (err) {
-    console.error("DSA suggestion error:", err);
-    return NextResponse.json(
-      { problems: [], error: "Failed to generate DSA questions" },
-      { status: 500 }
-    );
+    return handleApiError(err, rid);
   }
 }
 
 export async function GET(req: NextRequest) {
+  const rid = requestId();
   try {
-    const analysisId = req.nextUrl.searchParams.get("analysisId");
-    if (!analysisId) {
-      return NextResponse.json({ error: "analysisId is required" }, { status: 400 });
+    const parsed = getQuerySchema.safeParse({ analysisId: req.nextUrl.searchParams.get("analysisId") });
+    if (!parsed.success) {
+      return fail("analysisId (uuid) is required", { status: 400, requestId: rid });
     }
-
-    const supabase = await createClientServer();
+    const { analysisId } = parsed.data;
+    const { supabase } = await requireAnalysisOwner(analysisId);
     const { data, error } = await supabase
       .from("dsa_questions")
       .select("id, analysis_result_id, title, difficulty, topic_tags, reason_suggested, created_at")
@@ -124,19 +143,14 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: true });
 
     if (error) {
-      return NextResponse.json({ problems: [], error: error.message }, { status: 500 });
+      return handleApiError(new Error(error.message), rid);
     }
 
-    
     const headers = new Headers({
       "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120"
     })
-    return NextResponse.json({ problems: data ?? [] }, { headers });
+    return NextResponse.json({ success: true, data: { problems: data ?? [] }, requestId: rid }, { headers });
   } catch (err) {
-    console.error("DSA questions fetch error:", err);
-    return NextResponse.json(
-      { problems: [], error: "Failed to fetch DSA questions" },
-      { status: 500 }
-    );
+    return handleApiError(err, rid);
   }
 }

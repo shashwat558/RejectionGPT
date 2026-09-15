@@ -1,8 +1,6 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
-import { GoogleGenAI } from "@google/genai"
+import { getGenAI, EMBEDDING_MODEL } from "@/lib/ai"
 import { createClientServer } from "@/lib/utils/supabase/server"
-
-const genAi = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
 const textSplitter = async (text: string) => {
   const splitter = new RecursiveCharacterTextSplitter({
@@ -42,10 +40,11 @@ export async function embedAndStore({
     textSplitter(jobData.data.description + jobData.data.title + jobData.data.company_name),
   ])
 
+  const genAi = getGenAI();
   await Promise.all([
     ...resumeChunks.map(async (chunk, i) => {
       const embeddingResponse = await genAi.models.embedContent({
-        model: "text-embedding-004",
+        model: EMBEDDING_MODEL,
         contents: chunk,
       })
       const embeddingValue = embeddingResponse.embeddings?.[0]?.values
@@ -59,7 +58,7 @@ export async function embedAndStore({
     }),
     ...jobDescChunks.map(async (chunk, i) => {
       const embeddingResponse = await genAi.models.embedContent({
-        model: "text-embedding-004",
+        model: EMBEDDING_MODEL,
         contents: chunk,
       })
       const embeddingValue = embeddingResponse.embeddings?.[0]?.values

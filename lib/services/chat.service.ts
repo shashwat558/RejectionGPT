@@ -126,9 +126,10 @@ export async function initConversation({
   }
 
   try {
-    embedAndStore({ resumeId, jdId })
+    await embedAndStore({ resumeId, jdId })
   } catch (error) {
-    console.error("Embedding trigger failed", error)
+    const { logger } = await import("@/lib/logger");
+    logger.error("Embedding trigger failed", { error: String(error) })
   }
 
   return chatData.id

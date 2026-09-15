@@ -1,42 +1,54 @@
-import { createClientServer } from "@/lib/utils/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
+import { z } from "zod"
 import type { ChatShareMessage } from "@/lib/types/chat"
 import { createChatShareToken } from "@/lib/services/chat.service"
+import { requireConversationOwner } from "@/lib/api/auth"
+import { fail, handleApiError, ok, requestId } from "@/lib/api/response"
+
+const messageSchema = z.object({
+  id: z.string().max(100),
+  content: z.string().max(20000),
+  role: z.enum(["user", "assistant"]),
+  timestamp: z.union([z.string(), z.number(), z.date()]),
+  sources: z.array(z.object({ title: z.string().optional(), uri: z.string().optional(), domain: z.string().optional() }).passthrough()).optional().default([]),
+});
+
+const bodySchema = z.object({
+  conversationId: z.string().uuid(),
+  title: z.string().max(200).optional().default("Untitled chat"),
+  messages: z.array(messageSchema).max(200),
+});
 
 export async function POST(req: NextRequest) {
+  const rid = requestId();
   try {
-    const supabase = await createClientServer()
-    const { data: userData } = await supabase.auth.getUser()
-    const user = userData.user
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const json = await req.json().catch(() => null);
+    const parsed = bodySchema.safeParse(json);
+    if (!parsed.success) {
+      return fail("Invalid payload", { status: 400, requestId: rid })
     }
+    const { conversationId, title, messages } = parsed.data;
 
-    const { conversationId, title, messages } = await req.json()
+    // Must own the conversation to share it
+    const { userId } = await requireConversationOwner(conversationId);
 
-    if (!conversationId || !Array.isArray(messages)) {
-      return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
-    }
-
-    const normalizedMessages: ChatShareMessage[] = messages.map((message: ChatShareMessage) => ({
-      id: String(message.id),
-      content: String(message.content ?? ""),
-      role: message.role === "assistant" ? "assistant" : "user",
-      timestamp: new Date(message.timestamp).toISOString(),
-      sources: message.sources || [],
+    const normalizedMessages: ChatShareMessage[] = messages.map((m) => ({
+      id: String(m.id),
+      content: String(m.content ?? ""),
+      role: m.role,
+      timestamp: new Date(m.timestamp).toISOString(),
+      sources: m.sources || [],
     }))
 
     const token = await createChatShareToken({
       conversationId,
       title: title || "Untitled chat",
       messages: normalizedMessages,
-      userId: user.id,
+      userId,
     })
 
-    return NextResponse.json({ token })
+    return ok({ token }, { requestId: rid });
   } catch (error) {
-    console.error("Share chat error:", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return handleApiError(error, rid);
   }
 }

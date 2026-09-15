@@ -9,7 +9,7 @@ interface RoadmapProgressState {
 
 export const useRoadmapProgress = create(
   persist<RoadmapProgressState>(
-    (set, get) => ({
+    (set) => ({
       completedNodes: {},
       toggleNode(roadmapId, nodeId) {
         set((state) => {

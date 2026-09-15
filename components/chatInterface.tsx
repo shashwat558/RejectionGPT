@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Send,
   Paperclip,
@@ -15,10 +15,11 @@ import {
   ChevronDown,
   StopCircle,
 } from "lucide-react"
+import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport } from "ai"
 import MessageBubble from "./MEssageBubble"
 import TypingIndicator from "./typingIndicator"
 import QuickActions from "./QuickActionButton"
-import { useMessages } from "@/stores/messageStore"
 import { useChatMeta } from "@/stores/chatMetaStore"
 import { useShallow } from "zustand/react/shallow"
 import { Button } from "./ui/button"
@@ -28,34 +29,20 @@ import Link from "next/link"
 import { useAuth } from "@/stores/useAuth"
 import LoadingButton from "@/components/ui/loading-button"
 import ErrorState from "@/components/ui/error-state"
-import { streamChatMessage, shareChat } from "@/lib/services/chat.client"
+import { shareChat, getUIMessageText, getUIMessageSources } from "@/lib/services/chat.client"
 import { fetchCalendarStatus } from "@/lib/services/calendar.client"
-import type { ChatHistoryEntry, ChatSource } from "@/lib/types/chat"
 
-interface Message {
-  id: string
-  content: string
-  role: "user" | "assistant"
-  timestamp: Date
-  isTyping?: boolean
-  sources?: ChatSource[]
-}
+const MAX_INPUT = 8000;
+const MAX_TAG = 30;
+const MAX_MEMORY = 2000;
 
 const buildConversationTitle = (input: string) => {
   const words = input.trim().split(/\s+/).slice(0, 6)
   return words.length > 0 ? words.join(" ") : "Untitled chat"
 }
 
-const toHistory = (items: Message[]): ChatHistoryEntry[] =>
-  items.map((m) => ({
-    role: (m.role === "assistant" ? "model" : "user") as ChatHistoryEntry["role"],
-    parts: [{ text: m.content }],
-  }))
-
 export default function ChatInterface({ conversationId }: { conversationId: string }) {
-  const { messages, setMessages } = useMessages()
   const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isCalendarConnected, setIsCalendarConnected] = useState(false)
@@ -63,8 +50,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
   const [tagInput, setTagInput] = useState("")
   const [linkCopied, setLinkCopied] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const [shareError, setShareError] = useState<string | null>(null)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -92,6 +78,17 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
   const memory = conversation?.memory ?? ""
   const pinnedMessageIds = conversation?.pinnedMessageIds ?? []
 
+  // AI SDK v5 chat — server does RAG + grounding + persistence
+  const { messages, sendMessage, status, stop, regenerate, error, clearError } = useChat({
+    id: conversationId,
+    transport: new DefaultChatTransport({
+      api: "/api/chat/message",
+      body: { conversationId },
+    }),
+  });
+
+  const isLoading = status === "submitted" || status === "streaming";
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
@@ -107,29 +104,16 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
           const isConnected = await fetchCalendarStatus()
           setIsCalendarConnected(isConnected)
         }
-      } catch (error) {
-        console.error("Error checking calendar connection:", error)
+      } catch {
+        // calendar status is best-effort
       }
     }
     checkConnection()
   }, [user])
 
   useEffect(() => {
-    useMessages?.persist.setOptions({
-      name: conversationId,
-    })
-
-    useMessages.persist.rehydrate()
-    localStorage.removeItem("messages-storage")
-  }, [conversationId])
-
-  useEffect(() => {
     scrollToBottom()
-  }, [messages])
-
-  useEffect(() => {
-    return () => abortControllerRef.current?.abort()
-  }, [])
+  }, [messages, status])
 
   const updateConversationMeta = (partial: { title?: string; lastMessage?: string }) => {
     upsertConversation({
@@ -139,102 +123,27 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
     })
   }
 
-  const buildRecentHistory = (historyMessages: Message[]): ChatHistoryEntry[] => {
-    const MAX_CONTENT = 6
-    const coreHistory = toHistory(historyMessages)
-    const memoryText = memory.trim()
-    const memoryEntry: ChatHistoryEntry[] = memoryText
-      ? [{ role: "user", parts: [{ text: `Context memory:\n${memoryText}` }] }]
-      : []
+  // Keep title/lastMessage in sync with streamed messages
+  const lastText = useMemo(() => {
+    if (!messages.length) return "";
+    return getUIMessageText(messages[messages.length - 1] as { parts?: unknown[] }).slice(0, 200);
+  }, [messages]);
 
-    const recent = coreHistory.slice(-MAX_CONTENT)
-    return [...memoryEntry, ...recent]
-  }
+  useEffect(() => {
+    if (lastText) updateConversationMeta({ lastMessage: lastText });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastText]);
 
-  const updateAssistantContent = (messageId: string, content: string) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((msg) => (msg.id === messageId ? { ...msg, content } : msg))
-    )
-  }
-
-  const finalizeAssistantMessage = (messageId: string, content: string, sources?: Message["sources"]) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((msg) =>
-        msg.id === messageId ? { ...msg, content, sources, isTyping: false } : { ...msg, isTyping: false }
-      )
-    )
-  }
-
-  const runChatStream = async ({
-    promptText,
-    historyMessages,
-    assistantMessageId,
-  }: {
-    promptText: string
-    historyMessages: Message[]
-    assistantMessageId: string
-  }) => {
-    setIsLoading(true)
-    setErrorMessage(null)
-
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-
-    try {
-      const { text, sources } = await streamChatMessage({
-        conversationId,
-        prompt: promptText,
-        conversationHistory: buildRecentHistory(historyMessages),
-        signal: controller.signal,
-        onUpdate: (content) => updateAssistantContent(assistantMessageId, content),
-      })
-
-      finalizeAssistantMessage(assistantMessageId, text, sources)
-      updateConversationMeta({ lastMessage: text || promptText })
-    } catch (error) {
-      if ((error as Error).name !== "AbortError") {
-        console.error("Chat send failed:", error)
-        setErrorMessage("We couldn't send that message. Please try again.")
-      }
-      finalizeAssistantMessage(assistantMessageId, "", undefined)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      role: "user",
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+  const handleSend = async (raw?: string) => {
+    const text = (raw ?? input).trim().slice(0, MAX_INPUT);
+    if (!text || isLoading) return
+    clearError?.();
     if (!conversation || conversation.title === "Untitled chat") {
-      updateConversationMeta({ title: buildConversationTitle(input) })
+      updateConversationMeta({ title: buildConversationTitle(text) })
     }
-    updateConversationMeta({ lastMessage: input })
-
+    updateConversationMeta({ lastMessage: text })
     setInput("")
-
-    const assistantMessage: Message = {
-      id: "ai-" + Date.now().toString(),
-      content: "",
-      role: "assistant",
-      timestamp: new Date(),
-      isTyping: true,
-    }
-
-    setMessages((prev) => [...prev, assistantMessage])
-
-    await runChatStream({
-      promptText: input,
-      historyMessages: [...messages, userMessage],
-      assistantMessageId: assistantMessage.id,
-    })
+    await sendMessage({ text }, { body: { conversationId, memory: memory.slice(0, MAX_MEMORY) } });
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -249,75 +158,70 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
     textareaRef.current?.focus()
   }
 
-  const regenerateResponse = async (messageId: string) => {
-    const assistantMessageIndex = messages.findIndex((msg) => msg.id === messageId)
-    if (assistantMessageIndex === -1) return
-
-    const userMessage = messages[assistantMessageIndex - 1]
-    if (!userMessage || userMessage.role !== "user") return
-
-    setMessages((prev) => prev.slice(0, assistantMessageIndex))
-
-    setInput(userMessage.content)
-
-    const newAssistantMessage: Message = {
-      id: "ai-" + Date.now().toString(),
-      content: "",
-      role: "assistant",
-      timestamp: new Date(),
-      isTyping: true,
+  const handleRegenerate = async (messageId: string) => {
+    const idx = messages.findIndex((m) => m.id === messageId);
+    if (idx === -1) return;
+    // If it's the last assistant message, use native regenerate; else resend the preceding user prompt
+    const isLast = idx === messages.length - 1;
+    if (isLast) {
+      await regenerate({ body: { conversationId, memory: memory.slice(0, MAX_MEMORY) } });
+      return;
     }
-
-    setMessages((prev) => [...prev, newAssistantMessage])
-
-    await runChatStream({
-      promptText: userMessage.content,
-      historyMessages: [...messages.slice(0, assistantMessageIndex), userMessage],
-      assistantMessageId: newAssistantMessage.id,
-    })
+    const prev = messages[idx - 1];
+    const text = prev ? getUIMessageText(prev as { parts?: unknown[] }) : "";
+    if (text.trim()) await handleSend(text);
   }
 
-  const copyMessage = (content: string) => {
-    navigator.clipboard.writeText(content)
+  const copyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+    } catch {
+      // clipboard unavailable — no-op
+    }
   }
 
   const handleStop = () => {
-    abortControllerRef.current?.abort()
-    setIsLoading(false)
-    setMessages((prevMessages) =>
-      prevMessages.map((msg) => (msg.isTyping ? { ...msg, isTyping: false } : msg))
-    )
+    stop()
   }
 
   const handleTagSubmit = () => {
-    if (!tagInput.trim()) return
-    addTag(conversationId, tagInput)
+    const t = tagInput.trim().slice(0, MAX_TAG);
+    if (!t) return
+    addTag(conversationId, t)
     setTagInput("")
   }
 
   const handleShare = async () => {
     try {
       setIsSharing(true)
-      setErrorMessage(null)
+      setShareError(null)
       const token = await shareChat({
         conversationId,
         title: conversation?.title || "Untitled chat",
-        messages: messages.map((message) => ({
-          ...message,
-          timestamp: new Date(message.timestamp).toISOString(),
+        messages: messages.map((m) => ({
+          id: m.id,
+          content: getUIMessageText(m as { parts?: unknown[] }).slice(0, 20000),
+          role: m.role === "assistant" ? "assistant" : "user",
+          timestamp: new Date().toISOString(),
+          sources: getUIMessageSources(m as { parts?: unknown[] }),
         })),
       })
       const origin = window.location.origin
-      await navigator.clipboard.writeText(`${origin}/share/${token}`)
+      try {
+        await navigator.clipboard.writeText(`${origin}/share/${token}`)
+      } catch {
+        // ignore clipboard failure
+      }
       setLinkCopied(true)
       setTimeout(() => setLinkCopied(false), 2000)
-    } catch (error) {
-      console.error("Share failed:", error)
-      setErrorMessage("Unable to share this chat. Please try again.")
+    } catch {
+      setShareError("Unable to share this chat. Please try again.")
     } finally {
       setIsSharing(false)
     }
   }
+
+  const errorMessage = shareError || (error ? "We couldn't send that message. Please try again." : null);
 
   return (
     <div className="flex flex-col h-full w-full max-w-5xl mx-auto bg-white border-l border-r border-gray-200">
@@ -399,7 +303,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
               <Tag className="w-3.5 h-3.5 text-gray-400" />
               <input
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={(e) => setTagInput(e.target.value.slice(0, MAX_TAG))}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault()
@@ -407,6 +311,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
                   }
                 }}
                 placeholder="Add tag"
+                maxLength={MAX_TAG}
                 className="bg-transparent text-sm w-20 text-black placeholder-gray-400 focus:outline-none"
               />
             </div>
@@ -417,26 +322,49 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Conversation Memory</label>
               <textarea
                 value={memory}
-                onChange={(e) => setMemory(conversationId, e.target.value)}
+                onChange={(e) => setMemory(conversationId, e.target.value.slice(0, MAX_MEMORY))}
                 placeholder="Examples: preferred tone, target role, constraints, key objectives"
+                maxLength={MAX_MEMORY}
                 className="mt-2 w-full min-h-[80px] bg-transparent text-sm text-black placeholder-gray-400 focus:outline-none resize-y"
               />
+              <p className="text-[11px] text-gray-400 mt-1">{memory.length}/{MAX_MEMORY} — sent with each message</p>
             </div>
           )}
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gray-50/50">
-        {messages.map((message) => (
+        {messages.length === 0 && (
           <MessageBubble
-            key={message.id}
-            message={message}
-            onRegenerate={regenerateResponse}
-            onCopy={copyMessage}
-            onPin={(messageId) => togglePinnedMessage(conversationId, messageId)}
-            isPinned={pinnedMessageIds.includes(message.id)}
+            message={{
+              id: "greeting",
+              content: "Hey — I'm your job-prep agent. Ask about your resume, the role, or interview prep.",
+              role: "assistant",
+              timestamp: new Date(),
+            }}
+            actionsEnabled={false}
           />
-        ))}
+        )}
+        {messages.map((m) => {
+          const content = getUIMessageText(m as { parts?: unknown[] });
+          const sources = getUIMessageSources(m as { parts?: unknown[] });
+          return (
+            <MessageBubble
+              key={m.id}
+              message={{
+                id: m.id,
+                content,
+                role: m.role === "assistant" ? "assistant" : "user",
+                timestamp: new Date(),
+                sources,
+              }}
+              onRegenerate={handleRegenerate}
+              onCopy={copyMessage}
+              onPin={(messageId) => togglePinnedMessage(conversationId, messageId)}
+              isPinned={pinnedMessageIds.includes(m.id)}
+            />
+          );
+        })}
 
         {isLoading && <TypingIndicator />}
 
@@ -463,7 +391,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
             <textarea
               ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT))}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything about resumes, job search, or interview prep..."
               className="flex-1 bg-transparent text-black placeholder-gray-400 resize-none py-2 focus:outline-none min-h-[40px] max-h-48"
@@ -493,7 +421,7 @@ export default function ChatInterface({ conversationId }: { conversationId: stri
                 </button>
               ) : (
                 <button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!input.trim()}
                   className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
                 >

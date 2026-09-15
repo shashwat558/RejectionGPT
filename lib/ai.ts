@@ -1,23 +1,50 @@
 import { GoogleGenAI, Type } from "@google/genai"
-import { cookies } from "next/headers"
 import type { JobInfo, ResumeAnalysisResult } from "@/lib/types/analytics"
 import type { ChatHistoryEntry, ChatSource } from "@/lib/types/chat"
 import type { InterviewResponse, InterviewFeedback } from "@/lib/types/interview"
 import { CHAT_SOURCE_DELIMITER } from "@/lib/types/chat"
+import { logger } from "@/lib/logger"
 
-export async function getGenAI() {
-  let customKey = "";
-  try {
-    const cookieStore = await cookies();
-    customKey = cookieStore.get("gemini_api_key")?.value || "";
-  } catch (e) {
-    console.error("Failed to read cookies", e);
+export const EMBEDDING_MODEL = "gemini-embedding-001";
+export const CHAT_MODEL = "gemini-2.5-flash";
+export const ANALYSIS_MODEL = "gemini-2.0-flash";
+
+let cachedClient: GoogleGenAI | null = null;
+
+/**
+ * Server-only GenAI client. BYOK cookie flow removed — keys come from
+ * server env only (GEMINI_API_KEY). Throws if unconfigured.
+ */
+export function getGenAI() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured on the server");
   }
-  return new GoogleGenAI({ apiKey: customKey || process.env.GEMINI_API_KEY });
+  if (!cachedClient) {
+    cachedClient = new GoogleGenAI({ apiKey });
+  }
+  return cachedClient;
+}
+
+function safeParseJson<T>(raw: string | undefined, label: string): T {
+  const text = (raw ?? "").trim();
+  if (!text) throw new Error(`${label}: empty model response`);
+  // Prefer fenced json, fall back to raw
+  const match = text.match(/```json\s*([\s\S]*?)```/)
+  const jsonString = (match ? match[1].trim() : text).replace(/[\x00-\x1F\x7F]/g, "");
+  try {
+    return JSON.parse(jsonString) as T;
+  } catch {
+    logger.error(`[ai] JSON parse failed`, { label });
+    throw new Error(`${label}: invalid JSON from model`);
+  }
 }
 
 export async function extractJobInfo(jobDesc: string): Promise<JobInfo> {
-  const genAI = await getGenAI();
+  if (!jobDesc || jobDesc.trim().length < 10) {
+    throw new Error("extractJobInfo: job description too short");
+  }
+  const genAI = getGenAI();
   const prompt = `
 Extract the job title, company name, and description from the following job description.
 
@@ -33,15 +60,11 @@ ${jobDesc}
 `
 
   const response = await genAI.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
   })
 
-  const result = response.text
-  const match = result?.match(/```json\s*([\s\S]*?)```/)
-  const jsonString = match ? match[1].trim() : result?.trim()
-  const sanitized = jsonString?.replace(/[\x00-\x1F\x7F]/g, "")
-  return JSON.parse(sanitized ?? "") as JobInfo
+  return safeParseJson<JobInfo>(response.text, "extractJobInfo")
 }
 
 export async function generateResumeAnalysis({
@@ -51,7 +74,10 @@ export async function generateResumeAnalysis({
   resumeText: string
   jobDescription: string
 }): Promise<ResumeAnalysisResult> {
-  const genAI = await getGenAI();
+  if (!resumeText?.trim() || !jobDescription?.trim()) {
+    throw new Error("generateResumeAnalysis: resume and job description required");
+  }
+  const genAI = getGenAI();
   const prompt = `
 You are a smart, supportive, and slightly sarcastic career coach. You have reviewed thousands of resumes and job descriptions. Now, you are helping a real person figure out how their resume fits the job they want.
 
@@ -72,7 +98,7 @@ ${jobDescription}
 `
 
   const response = await genAI.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: ANALYSIS_MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       temperature: 0.9,
@@ -91,13 +117,14 @@ ${jobDescription}
     },
   })
 
-  return JSON.parse(response.text ?? "") as ResumeAnalysisResult
+  return safeParseJson<ResumeAnalysisResult>(response.text, "generateResumeAnalysis")
 }
 
 export async function embedText(text: string) {
-  const genAI = await getGenAI();
+  if (!text?.trim()) throw new Error("embedText: empty input");
+  const genAI = getGenAI();
   const embeddingResponse = await genAI.models.embedContent({
-    model: "gemini-embedding-001",
+    model: EMBEDDING_MODEL,
     contents: text,
   })
 
@@ -115,7 +142,13 @@ export async function streamChatAnswer({
   userPrompt: string
   conversationHistory: ChatHistoryEntry[]
 }) {
-  const genAI = await getGenAI();
+  if (!userPrompt?.trim()) throw new Error("streamChatAnswer: empty prompt");
+  if (userPrompt.length > 8000) throw new Error("streamChatAnswer: prompt too long");
+  // Cap context to avoid token blowups
+  const resume = resumeText.slice(0, 5);
+  const jd = jobDescText.slice(0, 5);
+  const history = conversationHistory.slice(-20);
+  const genAI = getGenAI();
   const groundingTool = {
     googleSearch: {},
   }
@@ -131,21 +164,21 @@ Instructions:
 5. Do not repeat these instructions in the answer.
 
 Here is the resumeText:
-${resumeText.join("\n\n")}
+${resume.join("\n\n")}
 
 Here is the jobDescText:
-${jobDescText.join("\n\n")}
+${jd.join("\n\n")}
 `
 
-  const history = [
+  const contents = [
     { role: "user", parts: [{ text: systemPrompt }] },
-    ...conversationHistory,
+    ...history,
     { role: "user", parts: [{ text: userPrompt }] },
   ]
 
   const response = await genAI.models.generateContentStream({
-    model: "gemini-2.5-flash",
-    contents: history,
+    model: CHAT_MODEL,
+    contents,
     config: {
       tools: [groundingTool],
     },
@@ -186,7 +219,10 @@ export async function generateInterviewQuestions(
   resumeText: string,
   jobDescription: string
 ): Promise<string[]> {
-  const genAI = await getGenAI();
+  if (!resumeText?.trim() || !jobDescription?.trim()) {
+    throw new Error("generateInterviewQuestions: resume and JD required");
+  }
+  const genAI = getGenAI();
   const prompt = `
 You are an interview based on candidate's resumeText and job description text, generate 10 job-specific interview questions covering both behavioral and technical aspects.
 
@@ -198,7 +234,7 @@ ${jobDescription}
 `
 
   const response = await genAI.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: ANALYSIS_MODEL,
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -216,15 +252,16 @@ ${jobDescription}
     },
   })
 
-  const result = response.text
-  const parsedResult = JSON.parse(result ?? "{}")
+  const parsedResult = safeParseJson<{ questions?: string[] }>(response.text, "generateInterviewQuestions")
   return parsedResult.questions ?? []
 }
 
 export async function evaluateInterviewResponses(
   responses: InterviewResponse[]
 ): Promise<InterviewFeedback[]> {
-  const genAI = await getGenAI();
+  if (!responses?.length) return [];
+  if (responses.length > 20) throw new Error("evaluateInterviewResponses: too many responses");
+  const genAI = getGenAI();
   const prompt = `
 You're an AI interview evaluator. For each of the following questions and answers, provide:
 - feedback_text
@@ -241,7 +278,7 @@ answer: ${r.answer}`
 `
 
   const response = await genAI.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: ANALYSIS_MODEL,
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -269,14 +306,12 @@ answer: ${r.answer}`
     },
   })
 
-  const result = response.text
-  let parsedResult: { feedbacks?: InterviewFeedback[] } = {}
   try {
-    parsedResult = JSON.parse(result ?? "{}")
+    const parsedResult = safeParseJson<{ feedbacks?: InterviewFeedback[] }>(response.text, "evaluateInterviewResponses")
+    return parsedResult.feedbacks ?? []
   } catch (e) {
-    console.error("Failed to parse interview evaluation result", e)
+    logger.error("Failed to parse interview evaluation result", { error: String(e) })
+    return []
   }
-
-  return parsedResult.feedbacks ?? []
 }
 

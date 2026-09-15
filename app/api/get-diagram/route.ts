@@ -1,32 +1,43 @@
-import { createClientServer } from "@/lib/utils/supabase/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { Type } from "@google/genai";
-import { NextRequest, NextResponse } from "next/server";
-import { getGenAI } from "@/lib/ai";
+import { getGenAI, ANALYSIS_MODEL } from "@/lib/ai";
+import { requireAnalysisOwner } from "@/lib/api/auth";
+import { fail, handleApiError, ok, requestId } from "@/lib/api/response";
+import { logger } from "@/lib/logger";
+
+const querySchema = z.object({
+  analysisId: z.string().uuid(),
+  experiencelevel: z.string().max(50).optional().default("mid"),
+});
 
 export async function GET(req: NextRequest) {
-    const genAI = await getGenAI();
-    const searchParams = req.nextUrl.searchParams;
-    const analysisId = searchParams.get("analysisId");
-    const experiencelevel = searchParams.get("experiencelevel");
-    if (!analysisId) {
-        return NextResponse.json({ error: "analysisId is required" }, { status: 400 });
-    }
-    const supabase = await createClientServer();
-    const { data:alreadyExists, error: alreadyExistsError } = await supabase.from("analysis_result").select("id, roadmap").eq("id", analysisId).single();
-    if(alreadyExists && alreadyExists.roadmap){
-        return NextResponse.json({ roadmap: alreadyExists.roadmap }, { status: 200 });
-    }
-    if(alreadyExistsError){
-        return NextResponse.json({ error: alreadyExistsError.message }, { status: 500 });
-    }
-    const { data, error } = await supabase.from("analysis_result").select("summary, strengths, missing_skills, weak_points, job_role").eq("id", analysisId).single();
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const rid = requestId();
+    try {
+        const parsed = querySchema.safeParse({
+            analysisId: req.nextUrl.searchParams.get("analysisId"),
+            experiencelevel: req.nextUrl.searchParams.get("experiencelevel") ?? undefined,
+        });
+        if (!parsed.success) {
+            return fail("analysisId (uuid) is required", { status: 400, requestId: rid });
+        }
+        const { analysisId, experiencelevel } = parsed.data;
 
-    
+        // Auth + ownership (was open IDOR + GET with DB side-effect)
+        const { supabase } = await requireAnalysisOwner(analysisId);
+        const { data: alreadyExists, error: alreadyExistsError } = await supabase.from("analysis_result").select("id, roadmap").eq("id", analysisId).single();
+        if (alreadyExists?.roadmap) {
+            return ok({ roadmap: alreadyExists.roadmap }, { requestId: rid });
+        }
+        if (alreadyExistsError) {
+            return handleApiError(new Error(alreadyExistsError.message), rid);
+        }
+        const { data, error } = await supabase.from("analysis_result").select("summary, strengths, missing_skills, weak_points, job_role").eq("id", analysisId).single();
+        if (error) {
+            return handleApiError(new Error(error.message), rid);
+        }
 
-    const prompt = `
+        const prompt = `
 You are an expert career mentor and technical guide.
 Your goal is to create a personalized learning roadmap to help the user become fully qualified for their target job.
 
@@ -68,66 +79,75 @@ Return JSON only in this exact format (no text outside JSON):
 }
 `;
 
-const roadmapResponse = await genAI.models.generateContent({
-  model: "gemini-2.0-flash",
-  contents: prompt,
-  config: {
-    responseMimeType: "application/json",
-    responseSchema: {
-      type: Type.OBJECT,
-      properties: {
-        title: { type: Type.STRING },
-        description: { type: Type.STRING },
-        nodes: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              title: { type: Type.STRING },
-              description: { type: Type.STRING },
-              category: { type: Type.STRING },
-              difficulty: { type: Type.STRING },
-              duration: { type: Type.STRING },
-              position: {
-                type: Type.OBJECT,
-                properties: {
-                  x: { type: Type.NUMBER },
-                  y: { type: Type.NUMBER },
+        const genAI = getGenAI();
+        const roadmapResponse = await genAI.models.generateContent({
+          model: ANALYSIS_MODEL,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                description: { type: Type.STRING },
+                nodes: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: { type: Type.STRING },
+                      title: { type: Type.STRING },
+                      description: { type: Type.STRING },
+                      category: { type: Type.STRING },
+                      difficulty: { type: Type.STRING },
+                      duration: { type: Type.STRING },
+                      position: {
+                        type: Type.OBJECT,
+                        properties: {
+                          x: { type: Type.NUMBER },
+                          y: { type: Type.NUMBER },
+                        },
+                        required: ["x", "y"],
+                      },
+                    },
+                    required: ["id", "title", "description"],
+                  },
                 },
-                required: ["x", "y"],
+                edges: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: { type: Type.STRING },
+                      source: { type: Type.STRING },
+                      target: { type: Type.STRING },
+                    },
+                    required: ["id", "source", "target"],
+                  },
+                },
               },
+              required: ["title", "description", "nodes", "edges"],
             },
-            required: ["id", "title", "description"],
           },
-        },
-        edges: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              source: { type: Type.STRING },
-              target: { type: Type.STRING },
-            },
-            required: ["id", "source", "target"],
-          },
-        },
-      },
-      required: ["title", "description", "nodes", "edges"],
-    },
-  },
-});
+        });
 
-    const result = roadmapResponse.text;
-    const mainString = JSON.parse(result ?? "");
-    console.log(mainString);
-    if(mainString.error){
-        return NextResponse.json({ error: mainString.error }, { status: 500 });
+        let mainString: unknown;
+        try {
+            mainString = JSON.parse(roadmapResponse.text ?? "");
+        } catch {
+            return fail("Model returned invalid roadmap JSON", { status: 502, requestId: rid });
+        }
+        if (mainString && typeof mainString === "object" && "error" in mainString) {
+            return fail("Roadmap generation failed", { status: 502, requestId: rid });
+        }
+        // TODO: move to POST /api/roadmap — GET should not write. Kept for compat.
+        const { error: updateError } = await supabase.from("analysis_result").update({ roadmap: mainString }).eq("id", analysisId);
+        if (updateError) {
+            return handleApiError(new Error(updateError.message), rid);
+        }
+        logger.info("[get-diagram] generated", { requestId: rid, analysisId });
+        return ok({ roadmap: mainString }, { requestId: rid });
+    } catch (error) {
+        return handleApiError(error, rid);
     }
-    const { error: updateError } = await supabase.from("analysis_result").update({ roadmap: mainString }).eq("id", analysisId);
-    if(updateError){
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
-    return NextResponse.json({ roadmap: mainString});
 }

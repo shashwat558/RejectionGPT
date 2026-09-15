@@ -42,3 +42,26 @@ export async function submitInterviewResponses(
     throw new Error("Failed to submit interview responses")
   }
 }
+
+export async function startInterviewSession(interviewId: string): Promise<{ started_at: string }> {
+  const res = await fetch("/api/interview/start", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ interviewId }),
+  });
+  if (!res.ok) throw new Error("Failed to start interview");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function saveInterviewAnswers(
+  interviewId: string,
+  answers: { questionId: string; answerText: string; timeSpent: number }[]
+): Promise<void> {
+  const res = await fetch("/api/interview/answer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ interviewId, answers }),
+  });
+  if (!res.ok) throw new Error("Failed to save answers");
+}

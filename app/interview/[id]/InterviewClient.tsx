@@ -2,14 +2,12 @@
 import InterviewQuestions from '@/components/InterviewQuestions';
 import InterviewResults from '@/components/InterviewResult';
 import InterviewStart from '@/components/InterviewStart';
-import { createClient } from '@/lib/utils/supabase/client';
-import { submitInterviewResponses } from '@/lib/services/interview.client';
-import { UUID } from 'crypto';
+import { saveInterviewAnswers, startInterviewSession, submitInterviewResponses } from '@/lib/services/interview.client';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 export interface QuestionType {
-    id: UUID
+    id: string
     index: number,
     question_text: string
 }
@@ -23,41 +21,31 @@ export interface AnswerType {
 
 const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: string, questions: QuestionType[], isCompleted: string}) => {
 
-    
-    
     const [currentState, setCurrentState] = useState<"start"| "interview" | "result">("start");
 
     const [currentQuestionIndex , setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<AnswerType[]| []>([]);
-    const [startTime, setStartTime] = useState<Date | null>(null);
-    console.log(startTime)
+    const [answers, setAnswers] = useState<AnswerType[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    if(isCompleted === "completed"){
-      router.push(`/interview/result/${interviewId}`)
-    }
-    
-    const supabase = createClient();
+    useEffect(() => {
+      if (isCompleted === "completed") {
+        router.push(`/interview/result/${interviewId}`)
+      }
+    }, [isCompleted, interviewId, router]);
 
-
-    
 
     const handleStart = async () => {
-
-        const {data: startTime, error} = await supabase.from("interview").update({
-            started_at: new Date(),
-            status: "begin"
-        }).eq('id', interviewId).select('started_at').maybeSingle();
-        if(error || !startTime){
-            throw new Error(error?.message);
+        setError(null);
+        try {
+          await startInterviewSession(interviewId);
+          setCurrentState("interview");
+          setCurrentQuestionIndex(0);
+          setAnswers([]);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Failed to start");
         }
-        setCurrentState("interview");
-        setStartTime(startTime.started_at);
-        setCurrentQuestionIndex(0);
-        setAnswers([]);
-
-
-
     }
     
     const handleAnswerSubmit = async (answer: string, timeSpent: number) => {
@@ -74,32 +62,28 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
   if (currentQuestionIndex < questions.length - 1) {
     setCurrentQuestionIndex((prev) => prev + 1);
   } else {
-    await Promise.all([
-      Promise.all(
-        allAnswers.map((answer) =>
-          supabase.from("interview_answers").insert({
-            interview_id: interviewId,
-            question_id: answer.questionId,
-            answer_text: answer.answerText,
-            time_spent: answer.timeSpent,
-          })
-        )
-      ),
-      supabase.from("interview")
-        .update({ ended_at: new Date(), status: "completed" })
-        .eq("id", interviewId),
-      submitInterviewResponses(
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      // Persist answers server-side (RLS + ownership enforced)
+      await saveInterviewAnswers(interviewId, allAnswers);
+      // Score via evaluator agent
+      await submitInterviewResponses(
         questions.map((q, i) => ({
           question_id: q.id,
           question_text: q.question_text,
           answer: allAnswers[i]?.answerText ?? "",
         })),
         interviewId
-      ),
-    ]);
+      );
 
-    setCurrentState("result");
-    router.push(`/interview/result/${interviewId}`)
+      setCurrentState("result");
+      router.push(`/interview/result/${interviewId}`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Submission failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 };
 
@@ -109,6 +93,7 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto">
+        {error && <p className="mb-4 text-sm text-red-600" role="alert">{error}</p>}
         {currentState === "start" && <InterviewStart onStart={handleStart} />}
 
         {currentState === "interview" && (
@@ -129,7 +114,7 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
           />
         )}
 
-        
+        {isSubmitting && <p className="mt-4 text-sm text-gray-500">Submitting…</p>}
       </div>
     </div>  
   )

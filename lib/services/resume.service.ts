@@ -1,10 +1,9 @@
-import { GoogleGenAI } from "@google/genai"
+import { getGenAI, ANALYSIS_MODEL } from "@/lib/ai"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
 import type { ParsedResumeData } from "@/lib/types/resume"
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-
 export async function parseResumePDF(file: File): Promise<ParsedResumeData> {
+  const genAI = getGenAI();
   const loader = new PDFLoader(file)
   const docs = await loader.load()
   const mainContent = docs[0].pageContent
@@ -17,7 +16,7 @@ ${mainContent}
 `
 
   const response = await genAI.models.generateContent({
-    model: "gemini-1.5-flash",
+    model: ANALYSIS_MODEL,
     contents: prompt,
   })
 

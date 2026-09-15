@@ -2,13 +2,12 @@
 
 import { ArrowRight, Menu, X, Key } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from '@/stores/useAuth'
 import Image from 'next/image'
 import { signOut } from '@/app/actions'
 import { useRouter } from 'next/navigation';
-import { useSettings } from '@/stores/useSettings';
 
 const navLinks = [
   {
@@ -34,15 +33,6 @@ const navLinks = [
 ]
 
 const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { geminiKey, setGeminiKey } = useSettings();
-  const [keyInput, setKeyInput] = useState("");
-
-  useEffect(() => {
-    if (isOpen) {
-      setKeyInput(geminiKey);
-    }
-  }, [isOpen, geminiKey]);
-
   if (!isOpen) return null;
 
   return (
@@ -59,26 +49,13 @@ const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
             <X className="w-5 h-5" />
           </button>
         </div>
-        <p className="text-sm text-gray-600 mb-6 font-medium">Bring your own Gemini API key to use RejectionGPT without limits or if the platform default key is unavailable.</p>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-black mb-2">Gemini API Key</label>
-            <input 
-              type="password"
-              placeholder="AIzaSy..."
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-              className="w-full border-2 border-black bg-gray-50 rounded-lg px-4 py-2.5 text-black placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-black/10 transition-all font-mono text-sm"
-            />
-          </div>
-          <button 
-             onClick={() => { setGeminiKey(keyInput); onClose(); }}
+        <p className="text-sm text-gray-600 mb-6 font-medium">BYOK was removed for security. The server now uses its own <code>GEMINI_API_KEY</code> / <code>OPENAI_API_KEY</code>. No key needed.</p>
+        <button
+             onClick={onClose}
              className="w-full bg-black text-white hover:bg-gray-800 transition-all font-bold py-3 rounded-xl border-2 border-black flex items-center justify-center gap-2"
           >
-             Save Configuration
+             Close
           </button>
-        </div>
       </motion.div>
     </div>
   );
@@ -89,12 +66,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { user, setUser } = useAuth()
-  const { initializeKeyFromCookie } = useSettings();
   const router = useRouter();
-
-  useEffect(() => {
-    initializeKeyFromCookie();
-  }, [initializeKeyFromCookie]);
 
   return (
     <>

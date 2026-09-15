@@ -4,24 +4,26 @@ interface SettingsState {
   geminiKey: string;
   setGeminiKey: (key: string) => void;
   initializeKeyFromCookie: () => void;
+  /** BYOK removed: server uses GEMINI_API_KEY. Kept as deprecated shim. */
+  isDeprecated: true;
 }
 
+/**
+ * @deprecated BYOK cookie flow removed for security (XSS + user-controlled keys).
+ * Server now uses GEMINI_API_KEY / OPENAI_API_KEY. This store is a no-op shim
+ * kept to avoid breaking Navbar until its SettingsModal is removed.
+ */
 export const useSettings = create<SettingsState>()(
-  (set) => ({
+  () => ({
     geminiKey: '',
-    setGeminiKey: (key: string) => {
-      set({ geminiKey: key });
-      if (typeof document !== 'undefined') {
-        document.cookie = `gemini_api_key=${encodeURIComponent(key)}; max-age=31536000; path=/`;
+    isDeprecated: true as const,
+    setGeminiKey: () => {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[settings] BYOK disabled — configure GEMINI_API_KEY on server");
       }
     },
     initializeKeyFromCookie: () => {
-      if (typeof document !== 'undefined') {
-        const match = document.cookie.match(new RegExp('(^| )gemini_api_key=([^;]+)'));
-        if (match) {
-          set({ geminiKey: decodeURIComponent(match[2]) });
-        }
-      }
-    }
+      // no-op: do not read cookies
+    },
   })
 )
