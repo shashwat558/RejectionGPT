@@ -1,25 +1,25 @@
-import { generateText, tool, stepCountIs } from "ai";
-import { z } from "zod";
+import { generateText, stepCountIs } from "ai";
 import { getChatModel } from "@/lib/agents/models";
 import { CHAT_SYSTEM, DSA_SYSTEM, ROADMAP_SYSTEM, PROMPT_VERSION } from "@/lib/agents/prompts";
 import { vectorSearch } from "@/lib/agents/tools/vector-search";
+import { analyzeResumeTool, type AnalyzeResumeInput } from "@/lib/agents/tools/analyzer";
 import type { AgentContext } from "@/lib/agents/types";
 import { logger } from "@/lib/logger";
 
 /**
  * Orchestrator — routes a user request to the right job-prep capability
- * using tool-calling (max 5 steps), with RAG + token caps.
+ * using tool-calling (max 3 steps), with RAG + token caps.
  */
 
-const searchTool = (ctx: AgentContext) =>
-  tool({
-    description: "Retrieve resume/JD chunks relevant to the prompt",
-    inputSchema: z.object({ query: z.string().min(1).max(2000) }),
-    execute: async ({ query }: { query: string }) => {
-      // Caller must supply ids via context extension; resolved by route handler
-      return { query, note: "resolved by handler", ctx: ctx.requestId };
-    },
-  });
+export async function runAnalyzerAgent(opts: {
+  input: AnalyzeResumeInput;
+  ctx: AgentContext;
+}) {
+  const parsed = analyzeResumeTool.inputSchema.parse(opts.input);
+  const result = await analyzeResumeTool.execute(parsed, opts.ctx);
+  logger.info("[agent/analyzer]", { requestId: opts.ctx.requestId, version: PROMPT_VERSION, analysisId: result.analysisId });
+  return result;
+}
 
 export async function runChatAgent(opts: {
   prompt: string;
@@ -37,7 +37,6 @@ export async function runChatAgent(opts: {
     system,
     messages: [...history.slice(-20), { role: "user" as const, content: prompt.slice(0, 8000) }],
     stopWhen: stepCountIs(3),
-    tools: { retrieve: searchTool(ctx) },
   });
   logger.info("[agent/chat]", { requestId: ctx.requestId, version: PROMPT_VERSION, usage });
   return text;

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
 import React, { useState } from 'react'
 import { motion } from "framer-motion";
@@ -12,7 +11,7 @@ import Image from 'next/image';
 
 const ResumeUploaderHome = () => {
     const [resume, setResume] = useState<File | null>(null);
-    const [jobDesc, setJobDesc] = useState<string | null>(null);
+    const [jobDesc, setJobDesc] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const router = useRouter()
@@ -32,18 +31,38 @@ const ResumeUploaderHome = () => {
             return
         }
         if (!resume) return;
+        if (!jobDesc.trim() || jobDesc.trim().length < 10) {
+            setErrorMessage("Please paste a job description (at least 10 characters).");
+            return;
+        }
         setErrorMessage(null);
 
         try {
             setIsLoading(true);
-            const { analysisId } = await uploadAndAnalyze(resume, jobDesc || "")
+            const { analysisId } = await uploadAndAnalyze(resume, jobDesc)
             router.push(`/analytics/${analysisId}`);
         } catch (error) {
-            console.error("Error during analysis upload:", error);
-            setErrorMessage("We could not process your resume. Please try again.");
+            setErrorMessage(error instanceof Error ? error.message : "We could not process your resume. Please try again.");
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleFileChange = (f: File | null) => {
+        setErrorMessage(null);
+        if (!f) {
+            setResume(null);
+            return;
+        }
+        if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) {
+            setErrorMessage("Resume must be a PDF file.");
+            return;
+        }
+        if (f.size > 10 * 1024 * 1024) {
+            setErrorMessage("Resume too large (max 10MB).");
+            return;
+        }
+        setResume(f);
     };
 
 
@@ -114,7 +133,7 @@ const ResumeUploaderHome = () => {
                         <div className="mb-6 flex items-center justify-between">
                             <div>
                                 <h3 className="text-lg font-semibold text-black">1. Upload Resume</h3>
-                                <p className="text-sm text-gray-500 mt-1">PDF or DOCX format</p>
+                                <p className="text-sm text-gray-500 mt-1">PDF format, max 10MB</p>
                             </div>
                             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
                                 <FileText className="w-5 h-5" />
@@ -124,9 +143,9 @@ const ResumeUploaderHome = () => {
                         <div className='relative w-full h-48 border-2 border-dashed border-black rounded-xl flex flex-col items-center justify-center p-6 bg-white hover:bg-gray-50 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all group overflow-hidden'>
                             <input
                                 type="file"
-                                accept=".pdf,.doc,.docx"
+                                accept=".pdf,application/pdf"
                                 className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
-                                onChange={(e) => setResume(e.target.files ? e.target.files[0] : null)}
+                                onChange={(e) => handleFileChange(e.target.files ? e.target.files[0] : null)}
                                 required
                             />
 
@@ -136,7 +155,7 @@ const ResumeUploaderHome = () => {
                                         <FileText className="w-6 h-6 text-gray-600 group-hover:text-black transition-colors" />
                                     </div>
                                     <p className='text-sm font-medium text-black mb-1 group-hover:text-black transition-colors'>Click or drag to upload</p>
-                                    <p className='text-xs text-gray-500 text-center max-w-[200px]'>SVG, PNG, JPG or GIF (max. 800x400px)</p>
+                                    <p className='text-xs text-gray-500 text-center max-w-[200px]'>PDF only (max 10MB)</p>
                                 </>
                             ) : (
                                 <div className="flex flex-col items-center text-center z-20">
@@ -176,7 +195,8 @@ const ResumeUploaderHome = () => {
                             <textarea
                                 placeholder='Paste the job description here to analyze alignment...'
                                 className='w-full h-full p-5 rounded-xl bg-white border-2 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] resize-none transition-shadow'
-                                onChange={(e) => setJobDesc(e.target.value)}
+                                onChange={(e) => setJobDesc(e.target.value.slice(0, 20000))}
+                                value={jobDesc}
                                 disabled={isLoading}
                                 required
                             />
@@ -193,7 +213,7 @@ const ResumeUploaderHome = () => {
                             loadingText="Analyzing alignment..."
                             className="w-full sm:w-auto py-3 px-8 bg-white border-2 border-black text-black font-bold rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             onClick={handleSubmit}
-                            disabled={!resume || !jobDesc}
+                            disabled={!resume || !jobDesc.trim() || isLoading}
                         >
                             Analyze Now <Zap className="w-4 h-4 ml-2" />
                         </LoadingButton>

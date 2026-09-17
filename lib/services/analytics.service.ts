@@ -1,7 +1,10 @@
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
-import { createClientServer } from "@/lib/utils/supabase/server"
 import type { AnalysisDetail, AnalysisSummary } from "@/lib/types/analytics"
-import { extractJobInfo, generateResumeAnalysis } from "@/lib/ai"
+import { analyzeResumeTool } from "@/lib/agents/tools/analyzer"
+import { extractPdfText } from "@/lib/services/pdf"
+import { embedAndStore } from "@/lib/services/embedding.service"
+import { initConversation } from "@/lib/services/chat.service"
+import { createClientServer } from "@/lib/utils/supabase/server"
+import { logger } from "@/lib/logger"
 
 export async function getAnalysisById(analysisId: string): Promise<AnalysisDetail> {
   const supabase = await createClientServer()
@@ -47,75 +50,43 @@ export async function listAnalysesForUser(userId: string): Promise<AnalysisSumma
   }))
 }
 
+/**
+ * Full upload pipeline, orchestrated through the Analyzer agent tool:
+ * PDF extract → analyzeResumeTool (LLM + persist) → initConversation →
+ * embedAndStore (best-effort RAG indexing).
+ */
 export async function createAnalysisFromUpload({
   file,
   jobDesc,
   userId,
+  requestId = "unknown",
 }: {
   file: File
   jobDesc: string
   userId: string
-}): Promise<{ analysisId: string }> {
+  requestId?: string
+}): Promise<{ analysisId: string; conversationId: string; resumeId: string; jdId: string }> {
   if (!file) {
     throw new Error("Missing resume file")
   }
 
-  const supabase = await createClientServer()
-  const loader = new PDFLoader(file)
-  const docs = await loader.load()
-  const resumeText = docs[0]?.pageContent || ""
+  const { text: resumeText } = await extractPdfText(file);
 
-  if (!resumeText) {
-    throw new Error("Failed to read resume content")
+  const { analysisId, resumeId, jdId } = await analyzeResumeTool.execute(
+    { resumeText, jobDescription: jobDesc, filename: file.name },
+    { userId, requestId, role: "analyzer" }
+  );
+
+  const conversationId = await initConversation({ resumeId, jdId, userId });
+
+  // RAG indexing is best-effort: chat falls back to raw chunks if missing,
+  // so a failed embed must not fail the whole upload.
+  try {
+    await embedAndStore({ resumeId, jdId })
+  } catch (error) {
+    logger.warn("[analyzer] embedding failed (non-fatal)", { requestId, error: String(error) })
   }
 
-  const [jobInfo, feedback] = await Promise.all([
-    extractJobInfo(jobDesc),
-    generateResumeAnalysis({ resumeText, jobDescription: jobDesc }),
-  ])
-
-  const [resumeRes, jdRes] = await Promise.all([
-    supabase
-      .from("resume")
-      .insert({ filename: file.name, text: resumeText, user_id: userId })
-      .select("id")
-      .single(),
-    supabase
-      .from("job_desc")
-      .insert({
-        title: jobInfo.title,
-        company_name: jobInfo.company || "N/A",
-        description: jobInfo.description,
-        user_id: userId,
-      })
-      .select("id")
-      .single(),
-  ])
-
-  if (resumeRes.error || jdRes.error || !resumeRes.data || !jdRes.data) {
-    throw new Error("Failed to store resume or job description")
-  }
-
-  const { data: analysisData, error } = await supabase
-    .from("analysis_result")
-    .insert({
-      match_score: feedback.match_score,
-      summary: feedback.summary,
-      strengths: feedback.strengths,
-      missing_skills: feedback.missing_skills,
-      weak_points: feedback.weak_points,
-      resume_id: resumeRes.data.id,
-      desc_id: jdRes.data.id,
-      company_name: jobInfo.company,
-      job_role: jobInfo.title,
-      user_id: userId,
-    })
-    .select("id")
-    .single()
-
-  if (error || !analysisData) {
-    throw new Error("Failed to store analysis")
-  }
-
-  return { analysisId: analysisData.id }
+  logger.info("[analyzer] upload complete", { requestId, analysisId, conversationId });
+  return { analysisId, conversationId, resumeId, jdId }
 }

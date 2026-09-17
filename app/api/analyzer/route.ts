@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAnalysisFromUpload } from "@/lib/services/analytics.service"
-import { createClientServer } from "@/lib/utils/supabase/server"
+import { requireUser } from "@/lib/api/auth"
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/api/rate-limit"
-import { fail, handleApiError, requestId } from "@/lib/api/response"
+import { fail, handleApiError, ok, requestId } from "@/lib/api/response"
 import { logger } from "@/lib/logger"
 
 const LIMIT = 10
@@ -22,13 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const supabase = await createClientServer()
-        const user = await supabase.auth.getUser()
-        const userId = user.data.user?.id
-
-        if (!userId) {
-            return fail("Unauthorized", { status: 401, requestId: rid })
-        }
+        const { userId } = await requireUser();
 
         const data = await req.formData()
         const file = data.get("resume") as File | null
@@ -47,11 +41,8 @@ export async function POST(req: NextRequest) {
             return fail("Job description too short", { status: 400, requestId: rid })
         }
 
-        const { analysisId } = await createAnalysisFromUpload({ file, jobDesc, userId })
-        return NextResponse.json(
-            { success: true, data: { analysisId }, requestId: rid },
-            { headers: rateLimitHeaders(remaining, LIMIT) }
-        )
+        const result = await createAnalysisFromUpload({ file, jobDesc, userId, requestId: rid })
+        return ok(result, { requestId: rid, headers: rateLimitHeaders(remaining, LIMIT) })
     } catch (error) {
         logger.error("[analyzer] error", { requestId: rid, error: String(error) })
         return handleApiError(error, rid)

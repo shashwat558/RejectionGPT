@@ -7,6 +7,7 @@ export type AgentRole = z.infer<typeof agentRoleSchema>;
 
 export interface AgentContext {
   userId: string;
+  role?: AgentRole;
   analysisId?: string;
   conversationId?: string;
   interviewId?: string;
@@ -22,6 +23,6 @@ export interface AgentResult<T = unknown> {
 export interface ToolDef<TInput = unknown, TOutput = unknown> {
   name: string;
   description: string;
-  inputSchema: z.ZodSchema<TInput>;
+  inputSchema: z.ZodType<TInput, z.ZodTypeDef, unknown>;
   execute: (input: TInput, ctx: AgentContext) => Promise<TOutput>;
 }

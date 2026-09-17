@@ -18,10 +18,15 @@ export async function parseResumeOnClient(file: File): Promise<ParsedResumeData>
   return result.json
 }
 
+export interface AnalysisUploadResult {
+  analysisId: string;
+  conversationId?: string;
+}
+
 export async function uploadAndAnalyze(
   resume: File,
   jobDesc: string
-): Promise<{ analysisId: string }> {
+): Promise<AnalysisUploadResult> {
   const formData = new FormData()
   formData.set("resume", resume)
   formData.set("jobDesc", jobDesc)
@@ -31,17 +36,18 @@ export async function uploadAndAnalyze(
     body: formData,
   })
 
+  const result = await response.json().catch(() => null);
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || "Analysis failed")
+    throw new Error(result?.error || "Analysis failed")
   }
 
-  const result = await response.json()
-  const analysisId = result.analysisId
-
+  // New envelope { success, data: { analysisId, conversationId } },
+  // legacy { success, data } passthrough, oldest { analysisId }
+  const payload = result?.data ?? result ?? {};
+  const analysisId: string | undefined = payload.analysisId;
   if (!analysisId) {
     throw new Error("Missing analysisId in response")
   }
 
-  return { analysisId }
+  return { analysisId, conversationId: payload.conversationId };
 }

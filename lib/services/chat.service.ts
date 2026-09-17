@@ -1,7 +1,6 @@
 import { createClientServer } from "@/lib/utils/supabase/server"
 import type { ChatHistoryEntry, ChatShareMessage } from "@/lib/types/chat"
 import { embedText, streamChatAnswer } from "@/lib/ai"
-import { embedAndStore } from "@/lib/services/embedding.service"
 
 export async function createChatStream({
   conversationId,
@@ -84,13 +83,18 @@ export async function createChatStream({
 export async function initConversation({
   resumeId,
   jdId,
+  userId: userIdOverride,
 }: {
   resumeId: string
   jdId: string
+  userId?: string
 }) {
   const supabase = await createClientServer()
-  const user = await supabase.auth.getUser()
-  const userId = user.data.user?.id
+  let userId = userIdOverride;
+  if (!userId) {
+    const user = await supabase.auth.getUser()
+    userId = user.data.user?.id
+  }
 
   if (!userId) {
     throw new Error("User not authenticated")
@@ -125,13 +129,9 @@ export async function initConversation({
     throw new Error("Insertion error")
   }
 
-  try {
-    await embedAndStore({ resumeId, jdId })
-  } catch (error) {
-    const { logger } = await import("@/lib/logger");
-    logger.error("Embedding trigger failed", { error: String(error) })
-  }
-
+  // Embeddings are owned by the analyzer flow (analytics.service) which calls
+  // embedAndStore directly — initConversation stays side-effect free so it is
+  // safe to call from uploads, retries, and deep-links without double-embedding.
   return chatData.id
 }
 
