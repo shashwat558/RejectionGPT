@@ -109,7 +109,7 @@ const exportAsPDF = () => {
             .select("question_id, answer_text, time_spent")
             .eq("interview_id", interviewId),
           supabase
-            .from("interview_feedback")
+            .from("interview_results")
             .select("question_id, feedback_text, score")
             .eq("interview_id", interviewId)
         ])
@@ -147,9 +147,13 @@ const exportAsPDF = () => {
     const averageTime = totalTime / (answers.length || 1)
     const completionRate = (answeredQuestions / (questions.length || 1)) * 100
 
+    // Scores are 0-10 from the evaluator; normalize 0-100 inputs defensively.
+    const normalizeScore = (score: number) => (score <= 10 ? score * 10 : score);
+
     const getScoreColor = (score: number) => {
-      if (score >= 80) return "text-green-600 font-semibold"
-      if (score >= 60) return "text-yellow-600 font-semibold"
+      const n = normalizeScore(score);
+      if (n >= 80) return "text-green-600 font-semibold"
+      if (n >= 60) return "text-yellow-600 font-semibold"
       return "text-red-500 font-semibold"
     }
 
@@ -283,7 +287,7 @@ const exportAsPDF = () => {
                             <div className="text-sm mt-4 pb-2 border-b border-gray-100 max-w-[200px] flex justify-between">
                               <span className="text-gray-500">Score:</span>
                               <span className={`${getScoreColor(feedback.score)}`}>
-                                {feedback.score}/100
+                                {normalizeScore(feedback.score)}/100
                               </span>
                             </div>
                           </div>

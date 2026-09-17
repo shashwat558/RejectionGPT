@@ -98,11 +98,12 @@ const InterviewClient = ({interviewId, questions, isCompleted}: {interviewId: st
 
         {currentState === "interview" && (
           <InterviewQuestions
+            interviewId={interviewId}
             question={questions[currentQuestionIndex]}
             questionNumber={currentQuestionIndex + 1}
             totalQuestions={questions.length}
             onAnswerSubmit={handleAnswerSubmit}
-            
+
           />
         )}
         {currentState === "result" && (

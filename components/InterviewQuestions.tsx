@@ -1,10 +1,12 @@
 "use client"
 import { QuestionType } from '@/app/interview/[id]/InterviewClient'
-import { ArrowRight, Clock, Mic, MicOff, Pause, Play, SkipForward, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Clock, Mic, MicOff, Pause, Play, SkipForward, Sparkles, Volume2, VolumeX, Zap } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { speakText, stopVoice, type VoiceState } from '@/lib/services/interview-voice.client';
 
 interface InterviewQuestionProps {
+    interviewId: string,
     question: QuestionType,
     questionNumber: number,
     totalQuestions: number,
@@ -14,6 +16,7 @@ interface InterviewQuestionProps {
 
 
 const InterviewQuestions = ({
+    interviewId,
     question,
     questionNumber,
     totalQuestions,
@@ -24,9 +27,13 @@ const InterviewQuestions = ({
     const [isActive, setIsActive] = useState(false)
     const [isPaused, setIsPaused] = useState(false)
     const [showStarHelper, setShowStarHelper] = useState(false)
-    
+    const [voiceState, setVoiceState] = useState<VoiceState>("idle")
+    const [voiceMuted, setVoiceMuted] = useState(false)
+    const [voiceBlocked, setVoiceBlocked] = useState(false)
+
     const startTimeRef = useRef<number>(Date.now());
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
+    const voiceAbortRef = useRef<AbortController | null>(null);
 
     const {
     transcript,
@@ -54,9 +61,24 @@ const stopListening = () => {
       setIsPaused(false);
       setTimeLeft(90);
       setAnswer("");
+      setVoiceBlocked(false);
       textAreaRef.current?.focus()
 
-    },[question.id])
+      // Interviewer speaks the question (captions always visible; audio is enhancement)
+      voiceAbortRef.current?.abort();
+      const controller = new AbortController();
+      voiceAbortRef.current = controller;
+      speakText(interviewId, question.question_text, {
+        signal: controller.signal,
+        onState: setVoiceState,
+      }).then(({ played }) => {
+        if (!played && !controller.signal.aborted) setVoiceBlocked(true);
+      }).catch(() => {
+        if (!controller.signal.aborted) setVoiceState("unavailable");
+      });
+
+      return () => controller.abort();
+    },[interviewId, question.id, question.question_text])
 
     useEffect(() => {
       if(listening){
@@ -68,6 +90,8 @@ const stopListening = () => {
         const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
         setIsActive(false);
       setIsPaused(false);
+        stopVoice();
+        voiceAbortRef.current?.abort();
         onAnswerSubmit(answer, timeSpent)
         resetTranscript()
     }
@@ -128,9 +152,43 @@ const stopListening = () => {
     const handleSkip = () => {
         const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
         setIsActive(false);
+        stopVoice();
+        voiceAbortRef.current?.abort();
         onAnswerSubmit("", timeSpent);
-        
+
     }
+
+    const handleReplay = () => {
+      voiceAbortRef.current?.abort();
+      const controller = new AbortController();
+      voiceAbortRef.current = controller;
+      setVoiceBlocked(false);
+      speakText(interviewId, question.question_text, {
+        signal: controller.signal,
+        onState: setVoiceState,
+      }).then(({ played }) => {
+        if (!played && !controller.signal.aborted) setVoiceBlocked(true);
+      }).catch(() => {
+        if (!controller.signal.aborted) setVoiceState("unavailable");
+      });
+    }
+
+    const toggleMute = () => {
+      const next = !voiceMuted;
+      setVoiceMuted(next);
+      if (next) {
+        stopVoice();
+        voiceAbortRef.current?.abort();
+        setVoiceState("idle");
+      }
+    }
+
+    useEffect(() => {
+      return () => {
+        stopVoice();
+        voiceAbortRef.current?.abort();
+      };
+    }, []);
 
     const getTimePassingWidth = () => {
         return `${(timeLeft/90) * 100}%`
@@ -209,7 +267,41 @@ const stopListening = () => {
     
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mb-6 flex-1">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-          <h2 className="text-2xl font-bold tracking-tight text-black mb-8 leading-snug">{question.question_text}</h2>
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <h2 className="text-2xl font-bold tracking-tight text-black leading-snug flex-1">{question.question_text}</h2>
+          </div>
+
+          {/* Interviewer voice controls — captions always visible, audio enhances */}
+          <div className="flex flex-wrap items-center gap-2 mb-8">
+            <button
+              onClick={handleReplay}
+              disabled={voiceMuted || voiceState === "loading"}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-semibold text-black bg-white hover:bg-gray-50 shadow-sm transition-colors disabled:opacity-50"
+              title="Hear the interviewer read this question"
+            >
+              {voiceState === "loading" ? (
+                <span className="animate-pulse">Loading voice…</span>
+              ) : voiceState === "speaking" ? (
+                <><Volume2 className="w-3.5 h-3.5" /> Playing…</>
+              ) : (
+                <><Play className="w-3.5 h-3.5" /> Listen</>
+              )}
+            </button>
+            <button
+              onClick={toggleMute}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-500 bg-white hover:bg-gray-50 shadow-sm transition-colors"
+              title={voiceMuted ? "Unmute interviewer voice" : "Mute interviewer voice"}
+            >
+              {voiceMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              {voiceMuted ? "Muted" : "Voice on"}
+            </button>
+            {voiceBlocked && !voiceMuted && (
+              <span className="text-xs text-gray-400 font-medium">Audio blocked by browser — press Listen to hear it.</span>
+            )}
+            {voiceState === "unavailable" && (
+              <span className="text-xs text-gray-400 font-medium">Voice unavailable — reading mode.</span>
+            )}
+          </div>
 
           <div className="space-y-4">
             <div className='flex gap-5 items-center justify-between w-full'>

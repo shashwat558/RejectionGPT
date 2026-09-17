@@ -17,6 +17,10 @@ const envSchema = z.object({
   GOOGLE_CALENDER_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CALENDER_CLIENT_SECRET: z.string().min(1).optional(),
 
+  // Deepgram TTS (server-only, interviewer voice; model param IS the voice)
+  DEEPGRAM_API_KEY: z.string().min(1).optional(),
+  DEEPGRAM_VOICE: z.string().min(1).optional(),
+
   REDIS_URL: z.string().min(1).optional(),
   SITE_URL: z.string().url().optional(),
 });
