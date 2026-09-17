@@ -11,6 +11,10 @@ interface InterviewQuestionProps {
     questionNumber: number,
     totalQuestions: number,
     onAnswerSubmit: (answer: string, timeSpent: number) => void;
+    /** Shown next to "Focus mode" — e.g. "Follow-up 1/2". */
+    badge?: string;
+    /** Per-turn time budget in seconds. Mains 90, follow-ups 60. */
+    timeLimit?: number;
 }
 
 
@@ -20,9 +24,11 @@ const InterviewQuestions = ({
     question,
     questionNumber,
     totalQuestions,
-    onAnswerSubmit
+    onAnswerSubmit,
+    badge,
+    timeLimit = 90,
 }:InterviewQuestionProps) => {
-    const [timeLeft, setTimeLeft] = useState(90);
+    const [timeLeft, setTimeLeft] = useState(timeLimit);
     const [answer, setAnswer] = useState("");
     const [isActive, setIsActive] = useState(false)
     const [isPaused, setIsPaused] = useState(false)
@@ -68,7 +74,7 @@ const toggleListening = () => {
       startTimeRef.current = Date.now();
       setIsActive(true);
       setIsPaused(false);
-      setTimeLeft(90);
+      setTimeLeft(timeLimit);
       setAnswer("");
       setVoiceBlocked(false);
       stopMic();
@@ -88,7 +94,7 @@ const toggleListening = () => {
       });
 
       return () => controller.abort();
-    },[interviewId, question.id, question.question_text, stopMic])
+    },[interviewId, question.id, question.question_text, stopMic, timeLimit])
 
     const handleSubmit = () => {
         const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
@@ -196,7 +202,7 @@ const toggleListening = () => {
     }, []);
 
     const getTimePassingWidth = () => {
-        return `${(timeLeft/90) * 100}%`
+        return `${(timeLeft/timeLimit) * 100}%`
     } 
 
     const words = answer.split(" ").filter((word) => word.length > 0).length
@@ -228,6 +234,9 @@ const toggleListening = () => {
               Question {questionNumber} of {totalQuestions}
             </span>
             <span className="text-xs text-black border border-gray-200 bg-gray-50 rounded-full px-2 py-1 font-medium">Focus mode</span>
+            {badge && (
+              <span className="text-xs text-white border border-black bg-black rounded-full px-2 py-1 font-medium">{badge}</span>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ToolDef } from "@/lib/agents/types";
-import { generateInterviewQuestions, evaluateInterviewResponses } from "@/lib/ai";
+import { generateInterviewQuestions, evaluateInterviewResponses, generateInterviewFollowup, type InterviewFollowup } from "@/lib/ai";
 import { createClientServer } from "@/lib/utils/supabase/server";
 
 export const genQuestionsInput = z.object({
@@ -27,6 +27,36 @@ export const generateQuestionsTool: ToolDef<z.infer<typeof genQuestionsInput>, {
   },
 };
 
+export const followupInput = z.object({
+  interviewId: z.string().uuid(),
+  questionId: z.string().uuid(),
+  question: z.string().min(1).max(2000),
+  answer: z.string().max(10000),
+  followupNumber: z.number().int().min(0).max(1),
+  history: z.array(z.object({
+    prompt: z.string().max(2000),
+    answer: z.string().max(10000),
+  })).max(6).optional().default([]),
+  role: z.string().max(200).optional(),
+  company: z.string().max(200).optional(),
+});
+
+/** Pure-LLM tool: decides follow-up vs next. No DB writes (persistence is batched at interview end). */
+export const generateFollowupTool: ToolDef<z.infer<typeof followupInput>, InterviewFollowup> = {
+  name: "generateInterviewFollowup",
+  description: "Decide whether to ask an adaptive follow-up or move on",
+  inputSchema: followupInput,
+  async execute(input) {
+    if (!input.answer.trim()) return { type: "next" as const };
+    return generateInterviewFollowup({
+      question: input.question,
+      answer: input.answer,
+      history: input.history,
+      role: input.role,
+      company: input.company,
+    });
+  },
+};
 export const evalResponsesInput = z.object({
   interviewId: z.string().uuid(),
   responses: z.array(z.object({

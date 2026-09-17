@@ -21,9 +21,14 @@
 
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
     const [questions, setQuestions] = useState<QuestionType[]>([])
-    const [answers, setAnswers] = useState<AnswerType[]>([])
+    const [answers, setAnswers] = useState<(AnswerType & { id: string })[]>([])
     const [feedbacks, setFeedbacks] = useState<
       { question_id: string; feedback_text: string; score: number }[]
+    >([])
+    // Follow-up turns (migration supabase/interview_followups.sql). Empty when
+    // the migration isn't applied or the interview had no follow-ups.
+    const [followups, setFollowups] = useState<
+      { id: string; question_id: string; answer_text: string; time_spent: number; followup_of: string | null; prompt_text: string | null }[]
     >([])
 
  
@@ -106,7 +111,7 @@ const exportAsPDF = () => {
             .eq("interview_id", interviewId),
           supabase
             .from("interview_answers")
-            .select("question_id, answer_text, time_spent")
+            .select("id, question_id, answer_text, time_spent")
             .eq("interview_id", interviewId),
           supabase
             .from("interview_results")
@@ -120,6 +125,18 @@ const exportAsPDF = () => {
           throw new Error(error?.message)
         }
 
+        // Best-effort: follow-up columns exist only after the migration.
+        try {
+          const followRes = await supabase
+            .from("interview_answers")
+            .select("id, question_id, answer_text, time_spent, followup_of, prompt_text")
+            .eq("interview_id", interviewId)
+            .not("followup_of", "is", null);
+          if (!followRes.error && followRes.data) setFollowups(followRes.data);
+        } catch {
+          // migration not applied — mains render normally
+        }
+
         setQuestions(
           questionsRes.data.map((q) => ({
             id: q.id,
@@ -130,6 +147,7 @@ const exportAsPDF = () => {
 
         setAnswers(
           answersRes.data.map((a) => ({
+            id: a.id,
             questionId: a.question_id,
             answerText: a.answer_text,
             timeSpent: a.time_spent
@@ -297,6 +315,20 @@ const exportAsPDF = () => {
                           </div>
                         )}
                       </div>
+
+                      {answer && followups.filter((f) => f.followup_of === answer.id).map((f) => (
+                        <div key={f.id} className="ml-4 border-l-2 border-black pl-4 space-y-3">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-white bg-black rounded-full px-2 py-0.5">Follow-up</span>
+                          {f.prompt_text && (
+                            <p className="text-sm font-medium text-black leading-relaxed">{f.prompt_text}</p>
+                          )}
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <p className="text-black text-sm leading-relaxed whitespace-pre-wrap">
+                              {f.answer_text?.trim() ? f.answer_text : "No answer provided"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

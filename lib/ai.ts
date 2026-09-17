@@ -256,6 +256,85 @@ ${jobDescription}
   return parsedResult.questions ?? []
 }
 
+export interface InterviewFollowup {
+  type: "followup" | "next";
+  text?: string;
+}
+
+/**
+ * Adaptive follow-up decision for a live interview turn.
+ * Returns { type: "next" } when the answer is empty/skipped/complete —
+ * callers degrade to "next" on any failure so the interview never blocks.
+ */
+export async function generateInterviewFollowup({
+  question,
+  answer,
+  history = [],
+  role,
+  company,
+}: {
+  question: string;
+  answer: string;
+  history?: { prompt: string; answer: string }[];
+  role?: string;
+  company?: string;
+}): Promise<InterviewFollowup> {
+  const q = question.slice(0, 2000);
+  const a = answer.slice(0, 10000);
+  if (!q.trim() || !a.trim()) return { type: "next" };
+
+  const genAI = getGenAI();
+  const historyText = history
+    .slice(-6)
+    .map((h, i) => `Turn ${i + 1} — Asked: ${h.prompt.slice(0, 500)} / Answered: ${h.answer.slice(0, 1000)}`)
+    .join("\n");
+
+  const prompt = `
+You are a senior hiring manager conducting a live interview${role ? ` for a ${role}` : ""}${company ? ` at ${company}` : ""}.
+
+You just asked:
+Question: ${q}
+
+The candidate answered:
+${a}
+${historyText ? `\nEarlier this interview:\n${historyText}\n` : ""}
+Decide your next move. Return JSON { "type": "followup" | "next", "text"?: string }.
+- "next" when: the answer is empty, gibberish, a skip, or already thorough and complete.
+- "followup" when: a short probe would reveal depth. "text" must be ONE probing question (1-2 sentences), conversational, building on the candidate's exact words.
+
+Rules:
+- Never reveal scores, verdicts, or evaluations.
+- Never repeat the original question verbatim.
+- Never ask more than one question in "text".
+`
+
+  try {
+    const response = await genAI.models.generateContent({
+      model: ANALYSIS_MODEL,
+      contents: prompt,
+      config: {
+        temperature: 0.7,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            type: { type: Type.STRING },
+            text: { type: Type.STRING },
+          },
+          required: ["type"],
+        },
+      },
+    });
+
+    const parsed = safeParseJson<{ type?: string; text?: string }>(response.text, "generateInterviewFollowup");
+    if (parsed.type !== "followup" || !parsed.text?.trim()) return { type: "next" };
+    return { type: "followup", text: parsed.text.trim().slice(0, 1000) };
+  } catch (e) {
+    logger.error("generateInterviewFollowup failed, degrading to next", { error: String(e) });
+    return { type: "next" };
+  }
+}
+
 export async function evaluateInterviewResponses(
   responses: InterviewResponse[]
 ): Promise<InterviewFeedback[]> {
