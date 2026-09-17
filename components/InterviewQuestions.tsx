@@ -2,7 +2,7 @@
 import { QuestionType } from '@/app/interview/[id]/InterviewClient'
 import { ArrowRight, Clock, Mic, MicOff, Pause, Play, SkipForward, Sparkles, Volume2, VolumeX, Zap } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react'
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
 import { speakText, stopVoice, type VoiceState } from '@/lib/services/interview-voice.client';
 
 interface InterviewQuestionProps {
@@ -36,18 +36,27 @@ const InterviewQuestions = ({
     const voiceAbortRef = useRef<AbortController | null>(null);
 
     const {
-    transcript,
-    listening,
-    resetTranscript,
-    
-} = useSpeechRecognition();
+      supported: micSupported,
+      micState,
+      interim: interimText,
+      start: startMic,
+      stop: stopMic,
+      retry: retryMic,
+    } = useSpeechToText({
+      onFinalText: (segment) => {
+        setAnswer((prev) => (prev ? `${prev} ${segment}` : segment));
+      },
+    });
+    const listening = micState === "listening";
 
 
-const startListening = () => SpeechRecognition.startListening({continuous: true, language: "en-IN"})
-const stopListening = () => {
-  SpeechRecognition.stopListening();
-  resetTranscript()
-}
+const startListening = () => startMic();
+const stopListening = () => stopMic();
+const toggleListening = () => {
+  if (listening) stopListening();
+  else if (micState === "denied" || micState === "error") retryMic();
+  else startListening();
+};
 
 
 
@@ -62,6 +71,7 @@ const stopListening = () => {
       setTimeLeft(90);
       setAnswer("");
       setVoiceBlocked(false);
+      stopMic();
       textAreaRef.current?.focus()
 
       // Interviewer speaks the question (captions always visible; audio is enhancement)
@@ -78,13 +88,7 @@ const stopListening = () => {
       });
 
       return () => controller.abort();
-    },[interviewId, question.id, question.question_text])
-
-    useEffect(() => {
-      if(listening){
-        setAnswer(transcript)
-      }
-    },[transcript, listening])
+    },[interviewId, question.id, question.question_text, stopMic])
 
     const handleSubmit = () => {
         const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
@@ -92,8 +96,8 @@ const stopListening = () => {
       setIsPaused(false);
         stopVoice();
         voiceAbortRef.current?.abort();
+        stopMic();
         onAnswerSubmit(answer, timeSpent)
-        resetTranscript()
     }
 
     useEffect(() => {
@@ -154,6 +158,7 @@ const stopListening = () => {
         setIsActive(false);
         stopVoice();
         voiceAbortRef.current?.abort();
+        stopMic();
         onAnswerSubmit("", timeSpent);
 
     }
@@ -303,22 +308,34 @@ const stopListening = () => {
             )}
           </div>
 
-          <div className="space-y-4">
+            <div className="space-y-4">
             <div className='flex gap-5 items-center justify-between w-full'>
               <label className="block text-gray-500 text-sm font-bold uppercase tracking-wider">Your Answer:</label>
               <div className='flex items-center gap-3'>
                 {listening && (<h2 className='text-sm font-medium text-black animate-pulse'>Listening...</h2>)}
-                <div className='p-2.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow-sm transition-colors cursor-pointer'>
-                
-                {listening ? <MicOff onClick={stopListening} className={`text-red-500 size-5`} />:
-                
-                <Mic onClick={startListening} className={`text-black size-5`} />
+                {micState === "denied" && (<span className='text-xs font-medium text-red-600'>Mic blocked — enable in browser, then tap mic to retry</span>)}
+                {micState === "error" && (<span className='text-xs font-medium text-red-600'>Mic error — tap mic to retry</span>)}
+                {!micSupported && (<span className='text-xs font-medium text-gray-400'>Voice input needs Chrome or Edge — typing works</span>)}
+                <button
+                  onClick={toggleListening}
+                  disabled={!micSupported || !isActive}
+                  title={
+                    !micSupported ? "Voice input not supported in this browser"
+                    : listening ? "Stop dictation (keeps your text)"
+                    : micState === "denied" ? "Mic blocked — tap to retry"
+                    : "Dictate your answer"
+                  }
+                  className='p-2.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow-sm transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
+                >
+                {listening ? <MicOff className={`text-red-500 size-5`} />:
+
+                <Mic className={`${micState === "denied" || micState === "error" ? "text-red-400" : "text-black"} size-5`} />
               }
 
-              </div>
+              </button>
               </div>
             </div>
-            
+
             <textarea
               ref={textAreaRef}
               value={answer}
@@ -327,6 +344,12 @@ const stopListening = () => {
               className="w-full h-64 p-5 bg-gray-50 border border-gray-200 rounded-xl text-black text-base placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all shadow-inner"
               disabled={!isActive}
             />
+            {listening && interimText && (
+              <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500 shadow-sm" aria-live="polite">
+                <span className="font-semibold text-gray-400 uppercase tracking-wider text-[11px]">Hearing… </span>
+                {interimText}
+              </div>
+            )}
             <div className="flex justify-between text-xs text-gray-500 font-medium">
               <span>{answer.length} characters</span>
               <span>{words} words</span>
