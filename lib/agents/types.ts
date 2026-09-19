@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /** Shared agent types — model-agnostic, works with Vercel AI SDK. */
 
-export const agentRoleSchema = z.enum(["analyzer", "interviewer", "dsa", "roadmap", "chat"]);
+export const agentRoleSchema = z.enum(["analyzer", "interviewer", "dsa", "roadmap", "chat", "practice"]);
 export type AgentRole = z.infer<typeof agentRoleSchema>;
 
 export interface AgentContext {

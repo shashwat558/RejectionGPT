@@ -394,3 +394,135 @@ answer: ${r.answer}`
   }
 }
 
+export interface PracticeMcq {
+  prompt: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+}
+
+export interface PracticeDsa {
+  title: string;
+  prompt: string;
+  editorial: string;
+  hints: string[];
+}
+
+export type PracticeGenerated = PracticeMcq[] | PracticeDsa[];
+
+const PRACTICE_DIFFICULTY_GUIDE: Record<string, string> = {
+  easy: "fundamentals a first-year student should know; single concept, no tricks.",
+  medium: "typical campus-placement / mass-recruiter difficulty; one twist, still solvable in minutes.",
+  hard: "product-company screening difficulty; multi-step reasoning or edge cases.",
+};
+
+/**
+ * Generate a track-based practice set. MCQ tracks return questions with
+ * options + correct_index + explanation; DSA returns problem + editorial.
+ * Throws on invalid model output (callers surface a 502).
+ */
+export async function generatePracticeSet({
+  track,
+  topic,
+  difficulty,
+  count,
+}: {
+  track: "aptitude" | "cs" | "dsa";
+  topic: string;
+  difficulty: "easy" | "medium" | "hard";
+  count: number;
+}): Promise<PracticeGenerated> {
+  if (!topic.trim()) throw new Error("generatePracticeSet: topic required");
+  const n = Math.min(Math.max(Math.floor(count), 1), 10);
+  const level = PRACTICE_DIFFICULTY_GUIDE[difficulty] ?? PRACTICE_DIFFICULTY_GUIDE.medium;
+  const genAI = getGenAI();
+
+  if (track === "dsa") {
+    const prompt = `
+You are a DSA coach for Indian campus placements. Create ${n} ORIGINAL practice problems on the pattern "${topic}" at ${difficulty} level (${level}).
+Each problem: a clear statement with input/output examples and constraints, solvable with the pattern. Do NOT copy LeetCode problems; write fresh variants.
+Return JSON { "questions": [{ "title": string, "prompt": string (markdown, statement + examples + constraints), "editorial": string (approach + complexity, no full code needed but pseudocode ok), "hints": string[2-3] }] }.
+`;
+    const response = await genAI.models.generateContent({
+      model: ANALYSIS_MODEL,
+      contents: prompt,
+      config: {
+        temperature: 0.7,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            questions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  prompt: { type: Type.STRING },
+                  editorial: { type: Type.STRING },
+                  hints: { type: Type.ARRAY, items: { type: Type.STRING } },
+                },
+                required: ["title", "prompt", "editorial"],
+              },
+            },
+          },
+          required: ["questions"],
+        },
+      },
+    });
+    const parsed = safeParseJson<{ questions?: PracticeDsa[] }>(response.text, "generatePracticeSet:dsa");
+    const questions = (parsed.questions ?? []).slice(0, n).filter((q) => q.prompt?.trim() && q.editorial?.trim());
+    if (!questions.length) throw new Error("generatePracticeSet: empty model response");
+    return questions;
+  }
+
+  const trackLabel = track === "aptitude" ? "aptitude (quantitative, logical, verbal reasoning like campus placement tests)" : "computer science fundamentals";
+  const prompt = `
+You are an exam setter for Indian campus placements. Create ${n} multiple-choice questions on "${topic}" (${trackLabel}) at ${difficulty} level (${level}).
+Each question: exactly 4 options, exactly one correct, a 1-2 sentence explanation of why the answer is right. No tricks depending on ambiguous wording.
+Return JSON { "questions": [{ "prompt": string, "options": string[4], "correct_index": 0-3, "explanation": string }] }.
+`;
+  const response = await genAI.models.generateContent({
+    model: ANALYSIS_MODEL,
+    contents: prompt,
+    config: {
+      temperature: 0.7,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          questions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                prompt: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correct_index: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
+              },
+              required: ["prompt", "options", "correct_index", "explanation"],
+            },
+          },
+        },
+        required: ["questions"],
+      },
+    },
+  });
+  const parsed = safeParseJson<{ questions?: PracticeMcq[] }>(response.text, "generatePracticeSet:mcq");
+  const questions = (parsed.questions ?? [])
+    .slice(0, n)
+    .filter(
+      (q) =>
+        q.prompt?.trim() &&
+        Array.isArray(q.options) &&
+        q.options.length === 4 &&
+        Number.isInteger(q.correct_index) &&
+        q.correct_index >= 0 &&
+        q.correct_index < 4 &&
+        q.explanation?.trim()
+    );
+  if (!questions.length) throw new Error("generatePracticeSet: empty model response");
+  return questions;
+}
+

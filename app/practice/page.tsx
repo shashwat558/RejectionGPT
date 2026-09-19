@@ -2,7 +2,9 @@ import Link from "next/link"
 import { createClientServer } from "@/lib/utils/supabase/server"
 import { redirect } from "next/navigation"
 import { getAllFeedbacks } from "@/lib/actions/actions"
+import { getPracticeStats } from "@/lib/services/practice.service"
 import DSAGenerateButton from "@/components/DSAGenerateButton"
+import PracticeTrackLauncher from "@/components/PracticeTrackLauncher"
 import { Briefcase, Calendar } from "lucide-react"
 
 export default async function Page() {
@@ -13,6 +15,7 @@ export default async function Page() {
   }
 
   const feedbacks = await getAllFeedbacks();
+  const stats = await getPracticeStats(data.user.id).catch(() => []);
 
   const ids = feedbacks.map(f => f.id);
   let withQuestions = new Set<string>();
@@ -35,6 +38,8 @@ export default async function Page() {
             Generate DSA questions tailored to your resume analysis or jump directly into practicing.
           </p>
         </section>
+
+        <PracticeTrackLauncher stats={stats} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {feedbacks.map((fb) => {
