@@ -510,6 +510,7 @@ Return JSON { "questions": [{ "prompt": string, "options": string[4], "correct_i
     },
   });
   const parsed = safeParseJson<{ questions?: PracticeMcq[] }>(response.text, "generatePracticeSet:mcq");
+
   const questions = (parsed.questions ?? [])
     .slice(0, n)
     .filter(
@@ -524,5 +525,102 @@ Return JSON { "questions": [{ "prompt": string, "options": string[4], "correct_i
     );
   if (!questions.length) throw new Error("generatePracticeSet: empty model response");
   return questions;
+}
+
+export interface StudyPlanPhase {
+  title: string;
+  weeks: string;
+  focus: string;
+  tasks: string[];
+  practice: { track: string; topic: string }[];
+}
+
+/**
+ * Generate a phased study plan sized to the student's horizon. Output is
+ * validated and practice topics are filtered to known lists by the caller.
+ */
+export async function generateStudyPlan({
+  targetRole,
+  tier,
+  monthsLeft,
+  strengths,
+  gaps,
+}: {
+  targetRole: string;
+  tier: string;
+  monthsLeft: number;
+  strengths: string[];
+  gaps: string[];
+}): Promise<{ phases: StudyPlanPhase[] }> {
+  const horizonWeeks = Math.min(Math.max(monthsLeft * 4, 4), 24);
+  const genAI = getGenAI();
+  const prompt = `
+You are a career coach for Indian engineering students. Build a study plan for a ${tier} college student with ${monthsLeft} months (${horizonWeeks} weeks) to prepare for entry-level "${targetRole}" roles.
+
+Measured strengths: ${strengths.length ? strengths.join("; ") : "none yet"}.
+Measured gaps: ${gaps.length ? gaps.join("; ") : "none yet"}.
+
+Rules:
+- 4-6 phases covering the full ${horizonWeeks} weeks (label each phase with week ranges like "Weeks 1-3").
+- Early phases fix fundamentals and gaps; later phases convert to interview readiness (mocks, timed drills, project proof).
+- Each phase: 3-5 concrete tasks (45-60 min/day habit), plus 1-3 practice pointers as {track, topic} where track is one of aptitude|cs|dsa and topic matches standard topics (e.g. Quantitative Aptitude, DBMS & SQL, Arrays, Two Pointers).
+- Be honest about competition; no guaranteed-job language.
+
+Return JSON { "phases": [{ "title": string, "weeks": string, "focus": string, "tasks": string[3-5], "practice": [{ "track": string, "topic": string }] }] }.
+`;
+  const response = await genAI.models.generateContent({
+    model: ANALYSIS_MODEL,
+    contents: prompt,
+    config: {
+      temperature: 0.7,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          phases: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                weeks: { type: Type.STRING },
+                focus: { type: Type.STRING },
+                tasks: { type: Type.ARRAY, items: { type: Type.STRING } },
+                practice: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      track: { type: Type.STRING },
+                      topic: { type: Type.STRING },
+                    },
+                    required: ["track", "topic"],
+                  },
+                },
+              },
+              required: ["title", "weeks", "focus", "tasks"],
+            },
+          },
+        },
+        required: ["phases"],
+      },
+    },
+  });
+  const parsed = safeParseJson<{ phases?: StudyPlanPhase[] }>(response.text, "generateStudyPlan");
+  const phases = (parsed.phases ?? [])
+    .slice(0, 6)
+    .map((p) => ({
+      title: String(p.title ?? "").slice(0, 200),
+      weeks: String(p.weeks ?? "").slice(0, 50),
+      focus: String(p.focus ?? "").slice(0, 1000),
+      tasks: (Array.isArray(p.tasks) ? p.tasks : []).slice(0, 6).map((t) => String(t).slice(0, 500)),
+      practice: (Array.isArray(p.practice) ? p.practice : []).slice(0, 4).map((pr) => ({
+        track: String(pr.track ?? "").slice(0, 20),
+        topic: String(pr.topic ?? "").slice(0, 100),
+      })),
+    }))
+    .filter((p) => p.title && p.tasks.length > 0);
+  if (phases.length < 2) throw new Error("generateStudyPlan: empty model response");
+  return { phases };
 }
 

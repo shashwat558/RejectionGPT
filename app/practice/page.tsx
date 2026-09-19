@@ -41,6 +41,23 @@ export default async function Page() {
 
         <PracticeTrackLauncher stats={stats} />
 
+        <Link
+          href="/practice/diagnostic/new"
+          className="block bg-black text-white rounded-2xl p-6 md:p-8 mb-10 shadow-sm hover:bg-gray-900 transition-colors"
+        >
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">Not sure where you stand? Take the baseline diagnostic</h2>
+              <p className="text-sm text-gray-300 mt-1 max-w-2xl">
+                15 minutes across aptitude, CS fundamentals, and DSA → skill map, role fits, and a study plan sized to your timeline.
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-xl text-sm font-bold shrink-0">
+              Start diagnostic
+            </span>
+          </div>
+        </Link>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {feedbacks.map((fb) => {
             const hasQuestions = withQuestions.has(fb.id);

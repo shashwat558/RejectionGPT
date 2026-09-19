@@ -9,7 +9,14 @@ import { submitPracticeAttempt } from "@/lib/services/practice.client";
 import { timeLimitForTrack } from "@/lib/types/practice";
 import type { AttemptFeedback, PracticeSetDetail } from "@/lib/types/practice";
 
-export default function PracticeSession({ detail }: { detail: PracticeSetDetail }) {
+export default function PracticeSession({
+  detail,
+  finishNext,
+}: {
+  detail: PracticeSetDetail;
+  /** Overrides the finish-screen primary action (used to chain diagnostic sets). */
+  finishNext?: { href: string; label: string };
+}) {
   const router = useRouter();
   const questions = detail.questions;
   const timeLimit = timeLimitForTrack(detail.track);
@@ -155,9 +162,15 @@ export default function PracticeSession({ detail }: { detail: PracticeSetDetail 
           <button onClick={() => router.push("/practice")} className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-black hover:bg-gray-50 shadow-sm">
             <RotateCcw className="w-4 h-4" /> More practice
           </button>
-          <button onClick={() => router.push("/analytics")} className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 shadow-sm">
-            Back to Analytics
-          </button>
+          {finishNext ? (
+            <button onClick={() => router.push(finishNext.href)} className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 shadow-sm">
+              {finishNext.label} <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button onClick={() => router.push("/analytics")} className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 shadow-sm">
+              Back to Analytics
+            </button>
+          )}
         </div>
       </div>
     );
